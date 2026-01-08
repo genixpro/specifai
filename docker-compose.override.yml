@@ -61,26 +61,26 @@ services:
       - "8000:8000"
     build:
       context: .
-      dockerfile: bradstarter/general/backend/Dockerfile
+      dockerfile: specifai/general/backend/Dockerfile
     # command: sleep infinity  # Infinite loop to keep container alive doing nothing
     command:
       - fastapi
       - run
       - --reload
-      - "bradstarter/general/backend/components/main.py"
+      - "specifai/general/backend/components/main.py"
     develop:
       watch:
-        - path: ./bradstarter
+        - path: ./specifai
           action: sync
-          target: /app/bradstarter
+          target: /app/specifai
           ignore:
-            - ./bradstarter/.venv
+            - ./specifai/.venv
             - .venv
         - path: ./pyproject.toml
           action: rebuild
     # TODO: remove once coverage is done locally
     volumes:
-      - ./bradstarter/htmlcov:/app/bradstarter/htmlcov
+      - ./specifai/htmlcov:/app/specifai/htmlcov
     environment:
       SMTP_HOST: "mailcatcher"
       SMTP_PORT: "1025"
@@ -124,8 +124,8 @@ services:
       - PLAYWRIGHT_HTML_HOST=0.0.0.0
       - CI=${CI}
     volumes:
-      - ./bradstarter/general/frontend/blob-report:/app/blob-report
-      - ./bradstarter/general/frontend/test-results:/app/test-results
+      - ./specifai/general/frontend/blob-report:/app/blob-report
+      - ./specifai/general/frontend/test-results:/app/test-results
     ports:
       - 9323:9323
 

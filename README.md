@@ -208,11 +208,11 @@ The input variables, with their default values (some auto generated) are:
 
 ## Backend Development
 
-Backend docs: [bradstarter/general/backend/README.md](README.backend.md).
+Backend docs: [specifai/general/backend/README.md](README.backend.md).
 
 ## Frontend Development
 
-Frontend docs: [bradstarter/general/frontend/README.md](README.frontend.md).
+Frontend docs: [specifai/general/frontend/README.md](README.frontend.md).
 
 ## Deployment
 

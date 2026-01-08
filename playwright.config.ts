@@ -10,7 +10,7 @@ import 'dotenv/config'
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: "./bradstarter/general/frontend/tests",
+  testDir: "./specifai/general/frontend/tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

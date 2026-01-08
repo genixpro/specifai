@@ -89,7 +89,7 @@ But it would be only to clean them up, leaving them won't really have any effect
 
 * Start the Docker Compose stack.
 
-* Download the OpenAPI JSON file from `http://localhost/api/v1/openapi.json` and copy it to a new file `openapi.json` at the root of the `bradstarter/general/frontend` directory.
+* Download the OpenAPI JSON file from `http://localhost/api/v1/openapi.json` and copy it to a new file `openapi.json` at the root of the `specifai/general/frontend` directory.
 
 * To generate the frontend client, run:
 
@@ -103,7 +103,7 @@ Notice that everytime the backend changes (changing the OpenAPI schema), you sho
 
 ## Using a Remote API
 
-If you want to use a remote API, you can set the environment variable `VITE_API_URL` to the URL of the remote API. For example, you can set it in the `bradstarter/general/frontend/.env` file:
+If you want to use a remote API, you can set the environment variable `VITE_API_URL` to the URL of the remote API. For example, you can set it in the `specifai/general/frontend/.env` file:
 
 ```env
 VITE_API_URL=https://api.my-domain.example.com

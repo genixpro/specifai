@@ -2,17 +2,17 @@
 
 ## Project Structure & Module Organization
 
-- `bradstarter/` is the main Python package, organized by domain (`admin/`, `auth/`, `items/`, `users/`, `general/`).
-- Backend code lives under `bradstarter/general/backend/` with APIs in `bradstarter/**/backend/apis/`, shared components in `bradstarter/**/backend/components/`, and data models in `bradstarter/general/backend/data_models/`.
-- Frontend code lives under `bradstarter/general/frontend/` with routes in `bradstarter/general/frontend/routes/`, UI in `bradstarter/general/frontend/elements/`, and assets in `bradstarter/general/frontend/public/`.
-- Tests are colocated, typically `*_test.py` under `bradstarter/**/backend/`, plus frontend tests in `bradstarter/general/frontend/tests/` and Playwright configs at the repo root.
+- `specifai/` is the main Python package, organized by domain (`admin/`, `auth/`, `items/`, `users/`, `general/`).
+- Backend code lives under `specifai/general/backend/` with APIs in `specifai/**/backend/apis/`, shared components in `specifai/**/backend/components/`, and data models in `specifai/general/backend/data_models/`.
+- Frontend code lives under `specifai/general/frontend/` with routes in `specifai/general/frontend/routes/`, UI in `specifai/general/frontend/elements/`, and assets in `specifai/general/frontend/public/`.
+- Tests are colocated, typically `*_test.py` under `specifai/**/backend/`, plus frontend tests in `specifai/general/frontend/tests/` and Playwright configs at the repo root.
 
 ## Build, Test, and Development Commands
 
 - `docker compose watch` starts the full local stack (backend, frontend, db, mailcatcher).
-- `cd bradstarter/general/frontend && npm run dev` runs the Vite dev server on `http://localhost:5173`.
-- `cd bradstarter/general/frontend && npm run build` builds the frontend for production.
-- `bash bradstarter/general/backend/scripts/test.sh` runs backend pytest suite.
+- `cd specifai/general/frontend && npm run dev` runs the Vite dev server on `http://localhost:5173`.
+- `cd specifai/general/frontend && npm run build` builds the frontend for production.
+- `bash specifai/general/backend/scripts/test.sh` runs backend pytest suite.
 - `npx playwright test` runs Playwright end-to-end tests (requires Docker stack).
 - `uv run pre-commit run --all-files` runs formatting/lint hooks.
 
@@ -20,11 +20,11 @@
 
 - Python: follow Ruff + Ruff-format (PEP 8, 4-space indents); use explicit typing and keep modules domain-scoped.
 - Frontend: Biome handles lint/format; use double quotes and semicolons-as-needed per `biome.json`.
-- Tests use `*_test.py` naming in backend; keep fixtures in `bradstarter/conftest.py` when shared.
+- Tests use `*_test.py` naming in backend; keep fixtures in `specifai/conftest.py` when shared.
 
 ## Testing Guidelines
 
-- Backend tests use Pytest; run via `bradstarter/general/backend/scripts/test.sh`.
+- Backend tests use Pytest; run via `specifai/general/backend/scripts/test.sh`.
 - Frontend E2E uses Playwright; ensure the Docker stack is running before `npx playwright test`.
 - Coverage output is written to `htmlcov/` after backend tests.
 

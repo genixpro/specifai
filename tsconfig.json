@@ -19,19 +19,19 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./bradstarter/general/frontend/*"],
-      "@auth/*": ["./bradstarter/auth/frontend/*"],
-      "@users/*": ["./bradstarter/users/frontend/*"],
-      "@items/*": ["./bradstarter/items/frontend/*"],
-      "@admin/*": ["./bradstarter/admin/frontend/*"]
+      "@/*": ["./specifai/general/frontend/*"],
+      "@auth/*": ["./specifai/auth/frontend/*"],
+      "@users/*": ["./specifai/users/frontend/*"],
+      "@items/*": ["./specifai/items/frontend/*"],
+      "@admin/*": ["./specifai/admin/frontend/*"]
     }
   },
   "include": [
-    "./bradstarter/general/frontend/**/*",
-    "./bradstarter/auth/frontend/**/*",
-    "./bradstarter/users/frontend/**/*",
-    "./bradstarter/items/frontend/**/*",
-    "./bradstarter/admin/frontend/**/*",
+    "./specifai/general/frontend/**/*",
+    "./specifai/auth/frontend/**/*",
+    "./specifai/users/frontend/**/*",
+    "./specifai/items/frontend/**/*",
+    "./specifai/admin/frontend/**/*",
     "playwright.config.ts"
   ],
   "references": [

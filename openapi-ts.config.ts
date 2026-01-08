@@ -1,8 +1,8 @@
 import { defineConfig } from "@hey-api/openapi-ts"
 
 export default defineConfig({
-  input: "./bradstarter/general/frontend/openapi.json",
-  output: "./bradstarter/general/frontend/utils/client",
+  input: "./specifai/general/frontend/openapi.json",
+  output: "./specifai/general/frontend/utils/client",
 
   plugins: [
     "legacy/axios",

@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["bradstarter/general/frontend/tests/**/*.ts"]
+  "exclude": ["specifai/general/frontend/tests/**/*.ts"]
 }

@@ -46,7 +46,7 @@ services:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     build:
       context: .
-      dockerfile: bradstarter/general/backend/Dockerfile
+      dockerfile: specifai/general/backend/Dockerfile
     networks:
       - traefik-public
       - default
@@ -54,7 +54,7 @@ services:
       db:
         condition: service_healthy
         restart: true
-    command: bash bradstarter/general/backend/scripts/prestart.sh
+    command: bash specifai/general/backend/scripts/prestart.sh
     env_file:
       - .env
     environment:

@@ -5,7 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "bradstarter/general/frontend/styles/index.css",
+    "css": "specifai/general/frontend/styles/index.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""

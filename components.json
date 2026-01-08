@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "bradstarter/general/frontend/styles/index.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/elements",
+    "utils": "@/utils/classnames",
+    "ui": "@/elements/ui",
+    "lib": "@/utils",
+    "hooks": "@/hooks"
+  },
+  "registries": {}
+}

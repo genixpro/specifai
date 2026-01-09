@@ -14,6 +14,7 @@ export default defineConfig({
       "@users": path.resolve(__dirname, "specifai", "users", "frontend"),
       "@items": path.resolve(__dirname, "specifai", "items", "frontend"),
       "@admin": path.resolve(__dirname, "specifai", "admin", "frontend"),
+      "@workspaces": path.resolve(__dirname, "specifai", "workspaces", "frontend"),
     },
   },
   plugins: [

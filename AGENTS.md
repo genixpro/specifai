@@ -27,6 +27,8 @@
 - Backend tests use Pytest; run via `specifai/general/backend/scripts/test.sh`.
 - Frontend E2E uses Playwright; ensure the Docker stack is running before `npx playwright test`.
 - Coverage output is written to `htmlcov/` after backend tests.
+- Always add new automated tests when introducing a new class or module.
+- Always run the relevant tests after making code changes; if you are considering asking whether to run tests, run them instead.
 
 ## Commit & Pull Request Guidelines
 

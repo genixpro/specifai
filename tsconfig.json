@@ -23,7 +23,8 @@
       "@auth/*": ["./specifai/auth/frontend/*"],
       "@users/*": ["./specifai/users/frontend/*"],
       "@items/*": ["./specifai/items/frontend/*"],
-      "@admin/*": ["./specifai/admin/frontend/*"]
+      "@admin/*": ["./specifai/admin/frontend/*"],
+      "@workspaces/*": ["./specifai/workspaces/frontend/*"]
     }
   },
   "include": [
@@ -32,6 +33,7 @@
     "./specifai/users/frontend/**/*",
     "./specifai/items/frontend/**/*",
     "./specifai/admin/frontend/**/*",
+    "./specifai/workspaces/frontend/**/*",
     "playwright.config.ts"
   ],
   "references": [

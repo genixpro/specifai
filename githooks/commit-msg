@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MSG_FILE="${1:-}"
+if [[ -z "$MSG_FILE" || ! -f "$MSG_FILE" ]]; then
+  exit 0
+fi
+
+if [[ "${CODEX_COMMIT_REWRITE_DISABLE:-}" == "1" ]]; then
+  exit 0
+fi
+
+# Remove comment lines from templates to avoid rewriting instructions.
+ORIG="$(awk 'BEGIN{printed=0} $0 !~ /^#/ {print; printed=1} END{}' "$MSG_FILE")"
+
+if [[ -z "${ORIG//[[:space:]]/}" ]]; then
+  exit 0
+fi
+
+FIRST_LINE="$(printf '%s' "$ORIG" | head -n1)"
+case "$FIRST_LINE" in
+  "Merge "*|"Revert "*|"fixup!"*|"squash!"*|"WIP"*|"wip"*)
+    exit 0
+    ;;
+esac
+
+if ! command -v codex >/dev/null 2>&1; then
+  echo "codex not found; skipping commit message rewrite" >&2
+  exit 0
+fi
+
+TMP_OUT="$(mktemp -t codex-commit-msg.XXXXXX)"
+cleanup() { rm -f "$TMP_OUT"; }
+trap cleanup EXIT
+
+# Prefer staged diff for context; fall back to stat if too large.
+DIFF_FULL="$(git diff --cached 2>/dev/null || true)"
+if [[ -n "${DIFF_FULL//[[:space:]]/}" ]]; then
+  if (( ${#DIFF_FULL} > 8000 )); then
+    DIFF="$(git diff --cached --stat 2>/dev/null || true)"
+    DIFF_NOTE="(diff too large; using stat)"
+  else
+    DIFF="$DIFF_FULL"
+    DIFF_NOTE="(full diff)"
+  fi
+else
+  DIFF="$(git diff --cached --stat 2>/dev/null || true)"
+  DIFF_NOTE="(no staged diff; stat may be empty)"
+fi
+
+PROMPT="Rewrite the following git commit message using the staged changes for context.
+
+Rules:
+- Return only the rewritten message, no quotes.
+- Keep first line <= 72 characters.
+- Use sentence case; no prefixes like 'feat:' or 'fix:'.
+- Preserve meaning; mention domain if obvious.
+- Keep additional lines only if necessary.
+
+Staged changes $DIFF_NOTE:
+$DIFF
+
+Original message:
+$ORIG"
+
+printf '%s' "$PROMPT" | codex exec --skip-git-repo-check -o "$TMP_OUT" >/dev/null 2>&1 || exit 0
+
+NEW_MSG="$(cat "$TMP_OUT")"
+if [[ -n "${NEW_MSG//[[:space:]]/}" ]]; then
+  printf '%s\n' "$NEW_MSG" > "$MSG_FILE"
+fi

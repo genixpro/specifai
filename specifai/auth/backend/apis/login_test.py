@@ -10,7 +10,12 @@ from specifai.general.backend.utils.test_utils import (
     random_lower_string,
 )
 from specifai.general.backend.utils.utils import generate_password_reset_token
-from specifai.users.backend.components.user_crud import create_user
+from specifai.users.backend.data_repository.user_data_repository_postgres import (
+    PostgresUserDataRepository,
+)
+from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
+    PostgresWorkspaceDataRepository,
+)
 from specifai.users.backend.components.user_test_utils import user_authentication_headers
 from specifai.users.backend.data_models.user_models import UserCreate
 
@@ -93,7 +98,10 @@ def test_reset_password(client: TestClient, db: Session) -> None:
         is_active=True,
         is_superuser=False,
     )
-    user = create_user(session=db, user_create=user_create)
+    user_repo = PostgresUserDataRepository(db)
+    workspace_repo = PostgresWorkspaceDataRepository(db)
+    user = user_repo.create_user(user_create=user_create)
+    workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     token = generate_password_reset_token(email=email)
     headers = user_authentication_headers(client=client, email=email, password=password)
     data = {"new_password": new_password, "token": token}

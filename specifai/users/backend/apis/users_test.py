@@ -9,12 +9,22 @@ from specifai.general.backend.components.security import verify_password
 from specifai.users.backend.data_repository.user_data_repository_postgres import (
     PostgresUserDataRepository,
 )
+from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
+    PostgresWorkspaceDataRepository,
+)
 from specifai.general.backend.utils.test_utils import (
     random_email,
     random_lower_string,
 )
-from specifai.users.backend.components.user_crud import create_user
-from specifai.users.backend.data_models.user_models import UserCreate
+from specifai.users.backend.data_models.user_models import User, UserCreate
+
+
+def create_user_with_workspace(db: Session, user_in: UserCreate) -> User:
+    user_repo = PostgresUserDataRepository(db)
+    workspace_repo = PostgresWorkspaceDataRepository(db)
+    user = user_repo.create_user(user_create=user_in)
+    workspace_repo.get_or_create_default_workspace(owner_id=user.id)
+    return user
 
 
 def test_get_users_superuser_me(
@@ -78,7 +88,7 @@ def test_get_existing_user(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user = create_user_with_workspace(db, user_in)
     user_id = user.id
     r = client.get(
         f"{settings.API_V1_STR}/users/{user_id}",
@@ -96,7 +106,7 @@ def test_get_existing_user_current_user(client: TestClient, db: Session) -> None
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user = create_user_with_workspace(db, user_in)
     user_id = user.id
 
     login_data = {
@@ -138,7 +148,7 @@ def test_create_user_existing_username(
     # username = email
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    create_user(session=db, user_create=user_in)
+    create_user_with_workspace(db, user_in)
     data = {"email": username, "password": password}
     r = client.post(
         f"{settings.API_V1_STR}/users/",
@@ -170,12 +180,12 @@ def test_retrieve_users(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    create_user(session=db, user_create=user_in)
+    create_user_with_workspace(db, user_in)
 
     username2 = random_email()
     password2 = random_lower_string()
     user_in2 = UserCreate(email=username2, password=password2)
-    create_user(session=db, user_create=user_in2)
+    create_user_with_workspace(db, user_in2)
 
     r = client.get(f"{settings.API_V1_STR}/users/", headers=superuser_token_headers)
     all_users = r.json()
@@ -269,7 +279,7 @@ def test_update_user_me_email_exists(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user = create_user_with_workspace(db, user_in)
 
     data = {"email": user.email}
     r = client.patch(
@@ -344,7 +354,7 @@ def test_update_user(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user = create_user_with_workspace(db, user_in)
 
     data = {"full_name": "Updated_full_name"}
     r = client.patch(
@@ -382,12 +392,12 @@ def test_update_user_email_exists(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user = create_user_with_workspace(db, user_in)
 
     username2 = random_email()
     password2 = random_lower_string()
     user_in2 = UserCreate(email=username2, password=password2)
-    user2 = create_user(session=db, user_create=user_in2)
+    user2 = create_user_with_workspace(db, user_in2)
 
     data = {"email": user2.email}
     r = client.patch(
@@ -403,7 +413,7 @@ def test_delete_user_me(client: TestClient, db: Session) -> None:
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user = create_user_with_workspace(db, user_in)
     user_id = user.id
 
     login_data = {
@@ -448,7 +458,7 @@ def test_delete_user_super_user(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user = create_user_with_workspace(db, user_in)
     user_id = user.id
     r = client.delete(
         f"{settings.API_V1_STR}/users/{user_id}",
@@ -495,7 +505,7 @@ def test_delete_user_without_privileges(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user = create_user_with_workspace(db, user_in)
 
     r = client.delete(
         f"{settings.API_V1_STR}/users/{user.id}",

@@ -3,10 +3,11 @@ from sqlmodel import Session
 
 from specifai.general.backend.components.config import settings
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
-from specifai.users.backend.components.user_crud import (
-    create_user,
-    get_user_by_email,
-    update_user,
+from specifai.users.backend.data_repository.user_data_repository_postgres import (
+    PostgresUserDataRepository,
+)
+from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
+    PostgresWorkspaceDataRepository,
 )
 from specifai.users.backend.data_models.user_models import (
     User,
@@ -31,7 +32,10 @@ def create_random_user(db: Session) -> User:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
-    user = create_user(session=db, user_create=user_in)
+    user_repo = PostgresUserDataRepository(db)
+    workspace_repo = PostgresWorkspaceDataRepository(db)
+    user = user_repo.create_user(user_create=user_in)
+    workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     return user
 
 
@@ -44,14 +48,19 @@ def authentication_token_from_email(
     If the user doesn't exist it is created first.
     """
     password = random_lower_string()
-    user = get_user_by_email(session=db, email=email)
+    user_repo = PostgresUserDataRepository(db)
+    workspace_repo = PostgresWorkspaceDataRepository(db)
+    user = user_repo.get_user_by_email(email)
     if not user:
         user_in_create = UserCreate(email=email, password=password)
-        user = create_user(session=db, user_create=user_in_create)
+        user = user_repo.create_user(user_create=user_in_create)
+        workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     else:
         user_in_update = UserUpdate(password=password)
         if not user.id:
             raise Exception("User id not set")
-        user = update_user(session=db, db_user=user, user_in=user_in_update)
+        user = user_repo.update_user_from_update(
+            db_user=user, user_in=user_in_update
+        )
 
     return user_authentication_headers(client=client, email=email, password=password)

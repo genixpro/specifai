@@ -1,10 +1,12 @@
 import uuid
 
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from specifai.general.backend.components.config import settings
-from specifai.users.backend.data_models.user_models import User
+from specifai.users.backend.data_repository.user_data_repository_postgres import (
+    PostgresUserDataRepository,
+)
 
 
 def test_create_user(client: TestClient, db: Session) -> None:
@@ -22,7 +24,8 @@ def test_create_user(client: TestClient, db: Session) -> None:
     data = r.json()
 
     user_id = uuid.UUID(data["id"])
-    user = db.exec(select(User).where(User.id == user_id)).first()
+    repo = PostgresUserDataRepository(db)
+    user = repo.get_user_by_id(user_id)
 
     assert user
     assert user.email == "pollo@listo.com"

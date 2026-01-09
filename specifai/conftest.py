@@ -16,6 +16,7 @@ from specifai.users.backend.components.user_test_utils import (
     authentication_token_from_email,
 )
 from specifai.users.backend.data_models.user_models import User
+from specifai.workspaces.backend.data_models.workspace_models import Workspace
 from specifai.general.backend.utils.test_utils import get_superuser_token_headers
 
 
@@ -43,6 +44,8 @@ def db() -> Generator[Session, None, None]:
         init_db(session)
         yield session
         statement = delete(Item)
+        session.execute(statement)
+        statement = delete(Workspace)
         session.execute(statement)
         statement = delete(User)
         session.execute(statement)

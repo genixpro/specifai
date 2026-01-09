@@ -5,12 +5,16 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from specifai.users.backend.data_models.user_models import User
+    from specifai.workspaces.backend.data_models.workspace_models import Workspace
 
 
 # Shared properties
 class ItemBase(SQLModel):
     title: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
+    workspace_id: uuid.UUID | None = Field(
+        default=None, foreign_key="workspace.id", ondelete="CASCADE"
+    )
 
 
 # Properties to receive on item creation
@@ -30,6 +34,7 @@ class Item(ItemBase, table=True):
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
     owner: Optional["User"] = Relationship(back_populates="items")
+    workspace: Optional["Workspace"] = Relationship(back_populates="items")
 
 
 # Properties to return via API, id is always required

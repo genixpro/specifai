@@ -2,11 +2,12 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import col, delete, func, select
 
 from specifai.general.backend.apis.deps import (
     CurrentUser,
-    SessionDep,
+    ItemRepoDep,
+    UserRepoDep,
+    WorkspaceRepoDep,
     get_current_active_superuser,
 )
 from specifai.general.backend.components.config import settings
@@ -16,15 +17,8 @@ from specifai.general.backend.components.security import (
 )
 from specifai.general.backend.data_models.message_models import Message
 from specifai.general.backend.utils.utils import generate_new_account_email, send_email
-from specifai.items.backend.data_models.item_models import Item
-from specifai.users.backend.components.user_crud import (
-    create_user as crud_create_user,
-    get_user_by_email,
-    update_user as crud_update_user,
-)
 from specifai.users.backend.data_models.user_models import (
     UpdatePassword,
-    User,
     UserCreate,
     UserPublic,
     UserRegister,
@@ -41,35 +35,35 @@ router = APIRouter(prefix="/users", tags=["users"])
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UsersPublic,
 )
-def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+def read_users(repo: UserRepoDep, skip: int = 0, limit: int = 100) -> Any:
     """
     Retrieve users.
     """
-
-    count_statement = select(func.count()).select_from(User)
-    count = session.exec(count_statement).one()
-
-    statement = select(User).offset(skip).limit(limit)
-    users = session.exec(statement).all()
-
+    users, count = repo.list_users(skip=skip, limit=limit)
     return UsersPublic(data=users, count=count)
 
 
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+def create_user(
+    *,
+    user_repo: UserRepoDep,
+    workspace_repo: WorkspaceRepoDep,
+    user_in: UserCreate,
+) -> Any:
     """
     Create new user.
     """
-    user = get_user_by_email(session=session, email=user_in.email)
+    user = user_repo.get_user_by_email(user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
 
-    user = crud_create_user(session=session, user_create=user_in)
+    user = user_repo.create_user(user_create=user_in)
+    workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     if settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -84,29 +78,24 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
 
 @router.patch("/me", response_model=UserPublic)
 def update_user_me(
-    *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
+    *, user_repo: UserRepoDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> Any:
     """
     Update own user.
     """
 
     if user_in.email:
-        existing_user = get_user_by_email(session=session, email=user_in.email)
+        existing_user = user_repo.get_user_by_email(user_in.email)
         if existing_user and existing_user.id != current_user.id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
-    user_data = user_in.model_dump(exclude_unset=True)
-    current_user.sqlmodel_update(user_data)
-    session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
-    return current_user
+    return user_repo.update_user_me(db_user=current_user, user_in=user_in)
 
 
 @router.patch("/me/password", response_model=Message)
 def update_password_me(
-    *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
+    *, user_repo: UserRepoDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Any:
     """
     Update own password.
@@ -118,9 +107,7 @@ def update_password_me(
             status_code=400, detail="New password cannot be the same as the current one"
         )
     hashed_password = get_password_hash(body.new_password)
-    current_user.hashed_password = hashed_password
-    session.add(current_user)
-    session.commit()
+    user_repo.set_user_password(db_user=current_user, hashed_password=hashed_password)
     return Message(message="Password updated successfully")
 
 
@@ -133,7 +120,7 @@ def read_user_me(current_user: CurrentUser) -> Any:
 
 
 @router.delete("/me", response_model=Message)
-def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
+def delete_user_me(user_repo: UserRepoDep, current_user: CurrentUser) -> Any:
     """
     Delete own user.
     """
@@ -141,35 +128,37 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    session.delete(current_user)
-    session.commit()
+    user_repo.delete_user(db_user=current_user)
     return Message(message="User deleted successfully")
 
 
 @router.post("/signup", response_model=UserPublic)
-def register_user(session: SessionDep, user_in: UserRegister) -> Any:
+def register_user(
+    user_repo: UserRepoDep, workspace_repo: WorkspaceRepoDep, user_in: UserRegister
+) -> Any:
     """
     Create new user without the need to be logged in.
     """
-    user = get_user_by_email(session=session, email=user_in.email)
+    user = user_repo.get_user_by_email(user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system",
         )
     user_create = UserCreate.model_validate(user_in)
-    user = crud_create_user(session=session, user_create=user_create)
+    user = user_repo.create_user(user_create=user_create)
+    workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     return user
 
 
 @router.get("/{user_id}", response_model=UserPublic)
 def read_user_by_id(
-    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+    user_id: uuid.UUID, repo: UserRepoDep, current_user: CurrentUser
 ) -> Any:
     """
     Get a specific user by id.
     """
-    user = session.get(User, user_id)
+    user = repo.get_user_by_id(user_id)
     if user == current_user:
         return user
     if not current_user.is_superuser:
@@ -187,7 +176,7 @@ def read_user_by_id(
 )
 def update_user(
     *,
-    session: SessionDep,
+    repo: UserRepoDep,
     user_id: uuid.UUID,
     user_in: UserUpdate,
 ) -> Any:
@@ -195,39 +184,40 @@ def update_user(
     Update a user.
     """
 
-    db_user = session.get(User, user_id)
+    db_user = repo.get_user_by_id(user_id)
     if not db_user:
         raise HTTPException(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
     if user_in.email:
-        existing_user = get_user_by_email(session=session, email=user_in.email)
+        existing_user = repo.get_user_by_email(user_in.email)
         if existing_user and existing_user.id != user_id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
 
-    db_user = crud_update_user(session=session, db_user=db_user, user_in=user_in)
+    db_user = repo.update_user_from_update(db_user=db_user, user_in=user_in)
     return db_user
 
 
 @router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
 def delete_user(
-    session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
+    user_repo: UserRepoDep,
+    item_repo: ItemRepoDep,
+    current_user: CurrentUser,
+    user_id: uuid.UUID,
 ) -> Message:
     """
     Delete a user.
     """
-    user = session.get(User, user_id)
+    user = user_repo.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     if user == current_user:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
-    session.exec(statement)  # type: ignore
-    session.delete(user)
-    session.commit()
+    item_repo.delete_items_for_user(user_id=user_id)
+    user_repo.delete_user(db_user=user)
     return Message(message="User deleted successfully")

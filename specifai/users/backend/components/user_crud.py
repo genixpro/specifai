@@ -1,8 +1,13 @@
 from typing import Any
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
-from specifai.general.backend.components.security import get_password_hash
+from specifai.users.backend.data_repository.user_data_repository_postgres import (
+    PostgresUserDataRepository,
+)
+from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
+    PostgresWorkspaceDataRepository,
+)
 from specifai.users.backend.data_models.user_models import (
     User,
     UserCreate,
@@ -11,30 +16,18 @@ from specifai.users.backend.data_models.user_models import (
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
-    db_obj = User.model_validate(
-        user_create, update={"hashed_password": get_password_hash(user_create.password)}
-    )
-    session.add(db_obj)
-    session.commit()
-    session.refresh(db_obj)
-    return db_obj
+    user_repo = PostgresUserDataRepository(session)
+    workspace_repo = PostgresWorkspaceDataRepository(session)
+    user = user_repo.create_user(user_create=user_create)
+    workspace_repo.get_or_create_default_workspace(owner_id=user.id)
+    return user
 
 
 def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
-    user_data = user_in.model_dump(exclude_unset=True)
-    extra_data = {}
-    if "password" in user_data:
-        password = user_data["password"]
-        hashed_password = get_password_hash(password)
-        extra_data["hashed_password"] = hashed_password
-    db_user.sqlmodel_update(user_data, update=extra_data)
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-    return db_user
+    repo = PostgresUserDataRepository(session)
+    return repo.update_user_from_update(db_user=db_user, user_in=user_in)
 
 
 def get_user_by_email(*, session: Session, email: str) -> User | None:
-    statement = select(User).where(User.email == email)
-    session_user = session.exec(statement).first()
-    return session_user
+    repo = PostgresUserDataRepository(session)
+    return repo.get_user_by_email(email)

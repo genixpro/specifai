@@ -5,7 +5,6 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { type ItemCreate, ItemsService } from "@/utils/client"
 import { Button } from "@/elements/ui/button"
 import {
   Dialog,
@@ -29,6 +28,8 @@ import { Input } from "@/elements/ui/input"
 import { LoadingButton } from "@/elements/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils/utils"
+import { createItem } from "@items/utils/itemsApi"
+import { useWorkspaces } from "@workspaces/hooks/useWorkspaces"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -41,6 +42,7 @@ const AddItem = () => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const { activeWorkspaceId } = useWorkspaces()
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -53,8 +55,8 @@ const AddItem = () => {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ItemCreate) =>
-      ItemsService.createItem({ requestBody: data }),
+    mutationFn: (data: { title: string; description?: string }) =>
+      createItem({ ...data, workspace_id: activeWorkspaceId }),
     onSuccess: () => {
       showSuccessToast("Item created successfully")
       form.reset()
@@ -67,6 +69,10 @@ const AddItem = () => {
   })
 
   const onSubmit = (data: FormData) => {
+    if (!activeWorkspaceId) {
+      showErrorToast("Select a workspace before creating an item.")
+      return
+    }
     mutation.mutate(data)
   }
 

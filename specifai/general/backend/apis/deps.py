@@ -13,6 +13,24 @@ from specifai.auth.backend.data_models.auth_models import TokenPayload
 from specifai.general.backend.components import security
 from specifai.general.backend.components.config import settings
 from specifai.general.backend.components.db import engine
+from specifai.items.backend.data_repository.item_data_repository_base import (
+    ItemDataRepository,
+)
+from specifai.items.backend.data_repository.item_data_repository_postgres import (
+    PostgresItemDataRepository,
+)
+from specifai.users.backend.data_repository.user_data_repository_base import (
+    UserDataRepository,
+)
+from specifai.users.backend.data_repository.user_data_repository_postgres import (
+    PostgresUserDataRepository,
+)
+from specifai.workspaces.backend.data_repository.workspace_data_repository_base import (
+    WorkspaceDataRepository,
+)
+from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
+    PostgresWorkspaceDataRepository,
+)
 from specifai.users.backend.data_models.user_models import User
 
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -29,7 +47,26 @@ SessionDep = Annotated[Session, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
+def get_user_repository(session: SessionDep) -> UserDataRepository:
+    return PostgresUserDataRepository(session)
+
+
+def get_item_repository(session: SessionDep) -> ItemDataRepository:
+    return PostgresItemDataRepository(session)
+
+
+def get_workspace_repository(session: SessionDep) -> WorkspaceDataRepository:
+    return PostgresWorkspaceDataRepository(session)
+
+
+UserRepoDep = Annotated[UserDataRepository, Depends(get_user_repository)]
+ItemRepoDep = Annotated[ItemDataRepository, Depends(get_item_repository)]
+WorkspaceRepoDep = Annotated[
+    WorkspaceDataRepository, Depends(get_workspace_repository)
+]
+
+
+def get_current_user(repo: UserRepoDep, token: TokenDep) -> User:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
@@ -41,7 +78,7 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
             detail="Could not validate credentials",
         )
     user_id = uuid.UUID(token_data.sub) if token_data.sub else None
-    user = session.get(User, user_id)
+    user = repo.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=401, detail="User not found.")
     if not user.is_active:

@@ -2,21 +2,26 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { Search } from "lucide-react"
 import { Suspense } from "react"
 
-import { ItemsService } from "@/utils/client"
 import { DataTable } from "@/elements/Common/DataTable"
 import AddItem from "@items/elements/Items/AddItem"
 import { columns } from "@items/elements/Items/columns"
 import PendingItems from "@/elements/Pending/PendingItems"
+import { readItems } from "@items/utils/itemsApi"
+import { useWorkspaces } from "@workspaces/hooks/useWorkspaces"
 
-function getItemsQueryOptions() {
+function getItemsQueryOptions(workspaceId?: string | null) {
   return {
-    queryFn: () => ItemsService.readItems({ skip: 0, limit: 100 }),
-    queryKey: ["items"],
+    queryFn: () =>
+      readItems({ skip: 0, limit: 100, workspace_id: workspaceId }),
+    queryKey: ["items", workspaceId],
   }
 }
 
 function ItemsTableContent() {
-  const { data: items } = useSuspenseQuery(getItemsQueryOptions())
+  const { activeWorkspaceId } = useWorkspaces()
+  const { data: items } = useSuspenseQuery(
+    getItemsQueryOptions(activeWorkspaceId),
+  )
 
   if (items.data.length === 0) {
     return (
@@ -24,7 +29,9 @@ function ItemsTableContent() {
         <div className="rounded-full bg-muted p-4 mb-4">
           <Search className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold">You don't have any items yet</h3>
+        <h3 className="text-lg font-semibold">
+          You don't have any items in this workspace yet
+        </h3>
         <p className="text-muted-foreground">Add a new item to get started</p>
       </div>
     )

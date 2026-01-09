@@ -2,19 +2,19 @@ import uuid
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from specifai.general.backend.components.config import settings
 from specifai.general.backend.components.security import verify_password
+from specifai.users.backend.data_repository.user_data_repository_postgres import (
+    PostgresUserDataRepository,
+)
 from specifai.general.backend.utils.test_utils import (
     random_email,
     random_lower_string,
 )
-from specifai.users.backend.components.user_crud import (
-    create_user,
-    get_user_by_email,
-)
-from specifai.users.backend.data_models.user_models import User, UserCreate
+from specifai.users.backend.components.user_crud import create_user
+from specifai.users.backend.data_models.user_models import UserCreate
 
 
 def test_get_users_superuser_me(
@@ -66,7 +66,8 @@ def test_create_user_new_email(
         )
         assert 200 <= r.status_code < 300
         created_user = r.json()
-        user = get_user_by_email(session=db, email=username)
+        repo = PostgresUserDataRepository(db)
+        user = repo.get_user_by_email(username)
         assert user
         assert user.email == created_user["email"]
 
@@ -85,7 +86,8 @@ def test_get_existing_user(
     )
     assert 200 <= r.status_code < 300
     api_user = r.json()
-    existing_user = get_user_by_email(session=db, email=username)
+    repo = PostgresUserDataRepository(db)
+    existing_user = repo.get_user_by_email(username)
     assert existing_user
     assert existing_user.email == api_user["email"]
 
@@ -112,7 +114,8 @@ def test_get_existing_user_current_user(client: TestClient, db: Session) -> None
     )
     assert 200 <= r.status_code < 300
     api_user = r.json()
-    existing_user = get_user_by_email(session=db, email=username)
+    repo = PostgresUserDataRepository(db)
+    existing_user = repo.get_user_by_email(username)
     assert existing_user
     assert existing_user.email == api_user["email"]
 
@@ -199,8 +202,8 @@ def test_update_user_me(
     assert updated_user["email"] == email
     assert updated_user["full_name"] == full_name
 
-    user_query = select(User).where(User.email == email)
-    user_db = db.exec(user_query).first()
+    repo = PostgresUserDataRepository(db)
+    user_db = repo.get_user_by_email(email)
     assert user_db
     assert user_db.email == email
     assert user_db.full_name == full_name
@@ -223,8 +226,8 @@ def test_update_password_me(
     updated_user = r.json()
     assert updated_user["message"] == "Password updated successfully"
 
-    user_query = select(User).where(User.email == settings.FIRST_SUPERUSER)
-    user_db = db.exec(user_query).first()
+    repo = PostgresUserDataRepository(db)
+    user_db = repo.get_user_by_email(settings.FIRST_SUPERUSER)
     assert user_db
     assert user_db.email == settings.FIRST_SUPERUSER
     assert verify_password(new_password, user_db.hashed_password)
@@ -311,8 +314,8 @@ def test_register_user(client: TestClient, db: Session) -> None:
     assert created_user["email"] == username
     assert created_user["full_name"] == full_name
 
-    user_query = select(User).where(User.email == username)
-    user_db = db.exec(user_query).first()
+    repo = PostgresUserDataRepository(db)
+    user_db = repo.get_user_by_email(username)
     assert user_db
     assert user_db.email == username
     assert user_db.full_name == full_name
@@ -354,9 +357,8 @@ def test_update_user(
 
     assert updated_user["full_name"] == "Updated_full_name"
 
-    user_query = select(User).where(User.email == username)
-    user_db = db.exec(user_query).first()
-    db.refresh(user_db)
+    repo = PostgresUserDataRepository(db)
+    user_db = repo.get_user_by_email(username)
     assert user_db
     assert user_db.full_name == "Updated_full_name"
 
@@ -420,11 +422,11 @@ def test_delete_user_me(client: TestClient, db: Session) -> None:
     assert r.status_code == 200
     deleted_user = r.json()
     assert deleted_user["message"] == "User deleted successfully"
-    result = db.exec(select(User).where(User.id == user_id)).first()
+    repo = PostgresUserDataRepository(db)
+    result = repo.get_user_by_id(user_id)
     assert result is None
 
-    user_query = select(User).where(User.id == user_id)
-    user_db = db.execute(user_query).first()
+    user_db = repo.get_user_by_id(user_id)
     assert user_db is None
 
 
@@ -455,7 +457,8 @@ def test_delete_user_super_user(
     assert r.status_code == 200
     deleted_user = r.json()
     assert deleted_user["message"] == "User deleted successfully"
-    result = db.exec(select(User).where(User.id == user_id)).first()
+    repo = PostgresUserDataRepository(db)
+    result = repo.get_user_by_id(user_id)
     assert result is None
 
 
@@ -473,7 +476,8 @@ def test_delete_user_not_found(
 def test_delete_user_current_super_user_error(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    super_user = get_user_by_email(session=db, email=settings.FIRST_SUPERUSER)
+    repo = PostgresUserDataRepository(db)
+    super_user = repo.get_user_by_email(settings.FIRST_SUPERUSER)
     assert super_user
     user_id = super_user.id
 

@@ -12,7 +12,36 @@ if [ -x "venv/bin/pytest" ]; then
     PYTEST_BIN="venv/bin/pytest"
 fi
 
-if command -v coverage >/dev/null 2>&1; then
+HAS_PYTEST_COV=0
+if "$PYTHON_BIN" - <<'PY'
+try:
+    import pytest_cov  # noqa: F401
+except Exception:
+    raise SystemExit(1)
+PY
+then
+    HAS_PYTEST_COV=1
+fi
+
+HAS_XDIST=0
+if "$PYTHON_BIN" - <<'PY'
+try:
+    import xdist  # noqa: F401
+except Exception:
+    raise SystemExit(1)
+PY
+then
+    HAS_XDIST=1
+fi
+
+PYTEST_ARGS=()
+if [ "$HAS_XDIST" -eq 1 ]; then
+    PYTEST_ARGS+=("-n" "auto")
+fi
+
+if [ "$HAS_PYTEST_COV" -eq 1 ]; then
+    "$PYTEST_BIN" "${PYTEST_ARGS[@]}" --cov=specifai --cov-report=term --cov-report=html .
+elif command -v coverage >/dev/null 2>&1; then
     coverage run -m pytest .
     coverage report
     coverage html --title "${@-coverage}"
@@ -27,5 +56,5 @@ then
     "$PYTHON_BIN" -m coverage report
     "$PYTHON_BIN" -m coverage html --title "${@-coverage}"
 else
-    "$PYTEST_BIN" .
+    "$PYTEST_BIN" "${PYTEST_ARGS[@]}" .
 fi

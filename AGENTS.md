@@ -36,6 +36,7 @@
 - Recent commits use short, sentence-case summaries without prefixes (e.g., “Some fixes”).
 - Keep commits focused; mention the domain being changed when possible.
 - PRs should include a concise description, testing notes, and screenshots for UI changes. Link related issues when applicable.
+- Use the `gh` command to interact with GitHub.
 
 ## Security & Configuration Tips
 

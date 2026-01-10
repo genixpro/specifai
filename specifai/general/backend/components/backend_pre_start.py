@@ -1,4 +1,5 @@
 import logging
+import os
 
 from sqlalchemy import Engine
 from sqlmodel import Session, select
@@ -9,8 +10,9 @@ from specifai.general.backend.components.db import engine
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-max_tries = 60 * 5  # 5 minutes
-wait_seconds = 1
+max_tries = int(os.getenv("BACKEND_PRESTART_MAX_TRIES", 60 * 5))  # 5 minutes
+wait_seconds = int(os.getenv("BACKEND_PRESTART_WAIT_SECONDS", 1))
+reraise = os.getenv("BACKEND_PRESTART_RERAISE", "0") == "1"
 
 
 @retry(
@@ -18,6 +20,7 @@ wait_seconds = 1
     wait=wait_fixed(wait_seconds),
     before=before_log(logger, logging.INFO),
     after=after_log(logger, logging.WARN),
+    reraise=reraise,
 )
 def init(db_engine: Engine) -> None:
     try:

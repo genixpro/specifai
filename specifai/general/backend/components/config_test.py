@@ -45,7 +45,7 @@ def test_settings_all_cors_origins_and_mailcatcher_defaults() -> None:
     )
     assert [str(origin) for origin in settings.BACKEND_CORS_ORIGINS] == [
         "https://a.com/",
-        "https://b.com",
+        "https://b.com/",
     ]
     assert settings.all_cors_origins == [
         "https://a.com",
@@ -59,9 +59,10 @@ def test_settings_all_cors_origins_and_mailcatcher_defaults() -> None:
 
 
 def test_settings_sqlalchemy_database_uri() -> None:
+    base_kwargs = _base_settings_kwargs()
+    base_kwargs["POSTGRES_SERVER"] = "db.internal"
     settings = Settings(
-        **_base_settings_kwargs(),
-        POSTGRES_SERVER="db.internal",
+        **base_kwargs,
         POSTGRES_PORT=5433,
         POSTGRES_PASSWORD="password",
         POSTGRES_DB="specifai",
@@ -75,11 +76,12 @@ def test_settings_sqlalchemy_database_uri() -> None:
 def test_settings_default_secret_warns_in_local() -> None:
     with warnings.catch_warnings(record=True) as warning_list:
         warnings.simplefilter("always")
+        base_kwargs = _base_settings_kwargs()
+        base_kwargs["FIRST_SUPERUSER_PASSWORD"] = "changethis"
         Settings(
-            **_base_settings_kwargs(),
+            **base_kwargs,
             SECRET_KEY="changethis",
             POSTGRES_PASSWORD="changethis",
-            FIRST_SUPERUSER_PASSWORD="changethis",
             ENVIRONMENT="local",
         )
         warning_messages = [

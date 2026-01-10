@@ -21,6 +21,10 @@ from specifai.users.backend.components.user_test_utils import (
 from specifai.users.backend.data_models.user_models import User
 from specifai.workspaces.backend.data_models.workspace_models import Workspace
 
+os.environ.setdefault("BACKEND_PRESTART_MAX_TRIES", "1")
+os.environ.setdefault("BACKEND_PRESTART_WAIT_SECONDS", "0")
+os.environ.setdefault("BACKEND_PRESTART_RERAISE", "1")
+
 WORKER_ID = os.getenv("PYTEST_XDIST_WORKER", "gw0")
 TEST_DB_NAME: str | None = None
 TEST_DB_ADMIN_URL: str | None = None

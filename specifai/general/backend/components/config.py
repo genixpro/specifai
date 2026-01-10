@@ -84,11 +84,7 @@ class Settings(BaseSettings):
     def _set_default_emails_from(self) -> Self:
         if not self.EMAILS_FROM_NAME:
             self.EMAILS_FROM_NAME = self.PROJECT_NAME
-        if (
-            self.ENVIRONMENT == "local"
-            and not self.SMTP_HOST
-            and self.MAILCATCHER_HOST
-        ):
+        if self.ENVIRONMENT == "local" and not self.SMTP_HOST and self.MAILCATCHER_HOST:
             raw_host = self.MAILCATCHER_HOST
             parsed = urlparse(raw_host if "://" in raw_host else f"//{raw_host}")
             mailcatcher_host = parsed.hostname or raw_host

@@ -1,6 +1,6 @@
-import uuid
 from collections.abc import Generator
 from typing import Annotated
+import uuid
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -61,9 +61,7 @@ def get_workspace_repository(session: SessionDep) -> WorkspaceDataRepository:
 
 UserRepoDep = Annotated[UserDataRepository, Depends(get_user_repository)]
 ItemRepoDep = Annotated[ItemDataRepository, Depends(get_item_repository)]
-WorkspaceRepoDep = Annotated[
-    WorkspaceDataRepository, Depends(get_workspace_repository)
-]
+WorkspaceRepoDep = Annotated[WorkspaceDataRepository, Depends(get_workspace_repository)]
 
 
 def get_current_user(repo: UserRepoDep, token: TokenDep) -> User:

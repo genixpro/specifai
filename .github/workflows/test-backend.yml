@@ -28,14 +28,14 @@ jobs:
       - run: docker compose up -d db mailcatcher
       - name: Migrate DB
         run: uv run bash scripts/prestart.sh
-        working-directory: backend
+        working-directory: specifai/general/backend
       - name: Run tests
         run: uv run bash scripts/tests-start.sh "Coverage for ${{ github.sha }}"
-        working-directory: backend
+        working-directory: specifai/general/backend
       - run: docker compose down -v --remove-orphans
       - name: Store coverage files
         uses: actions/upload-artifact@v5
         with:
           name: coverage-html
-          path: backend/htmlcov
+          path: specifai/general/backend/htmlcov
           include-hidden-files: true

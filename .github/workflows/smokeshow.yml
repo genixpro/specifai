@@ -22,10 +22,10 @@ jobs:
       - uses: actions/download-artifact@v6
         with:
           name: coverage-html
-          path: backend/htmlcov
+          path: specifai/general/backend/htmlcov
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-      - run: smokeshow upload backend/htmlcov
+      - run: smokeshow upload specifai/general/backend/htmlcov
         env:
           SMOKESHOW_GITHUB_STATUS_DESCRIPTION: Coverage {coverage-percentage}
           SMOKESHOW_GITHUB_COVERAGE_THRESHOLD: 90

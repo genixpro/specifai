@@ -22,7 +22,7 @@ ENV UV_LINK_MODE=copy
 
 ENV PYTHONPATH=/app
 
-COPY ./specifai/general/backend/scripts /app/specifai/general/backend/scripts
+COPY ./scripts /app/scripts
 
 COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
 

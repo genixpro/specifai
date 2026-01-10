@@ -12,7 +12,7 @@
 - `docker compose watch` starts the full local stack (backend, frontend, db, mailcatcher).
 - `cd specifai/general/frontend && npm run dev` runs the Vite dev server on `http://localhost:5173`.
 - `cd specifai/general/frontend && npm run build` builds the frontend for production.
-- `bash specifai/general/backend/scripts/test.sh` runs backend pytest suite.
+- `bash scripts/backend-test.sh` runs backend pytest suite.
 - `npx playwright test` runs Playwright end-to-end tests (requires Docker stack).
 - `uv run pre-commit run --all-files` runs formatting/lint hooks.
 
@@ -24,7 +24,7 @@
 
 ## Testing Guidelines
 
-- Backend tests use Pytest; run via `specifai/general/backend/scripts/test.sh`.
+- Backend tests use Pytest; run via `scripts/backend-test.sh`.
 - Frontend E2E uses Playwright; ensure the Docker stack is running before `npx playwright test`.
 - Coverage output is written to `htmlcov/` after backend tests.
 - Always add new automated tests when introducing a new class or module.

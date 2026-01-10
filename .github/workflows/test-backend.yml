@@ -31,9 +31,15 @@ jobs:
       - name: Migrate DB
         run: uv run bash scripts/prestart.sh
         working-directory: specifai/general/backend
+        env:
+          POSTGRES_SERVER: localhost
+          POSTGRES_PORT: "5432"
       - name: Run tests
         run: uv run bash scripts/tests-start.sh "Coverage for ${{ github.sha }}"
         working-directory: specifai/general/backend
+        env:
+          POSTGRES_SERVER: localhost
+          POSTGRES_PORT: "5432"
       - run: docker compose down -v --remove-orphans
       - name: Store coverage files
         uses: actions/upload-artifact@v5

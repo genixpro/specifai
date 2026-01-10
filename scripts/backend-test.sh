@@ -35,12 +35,19 @@ then
 fi
 
 PYTEST_ARGS=()
+USE_XDIST=0
 if [ "$HAS_XDIST" -eq 1 ]; then
+    USE_XDIST=1
+fi
+if [ -n "${PYTEST_XDIST_DISABLE:-}" ]; then
+    USE_XDIST=0
+fi
+if [ "$USE_XDIST" -eq 1 ]; then
     PYTEST_ARGS+=("-n" "auto")
 fi
 
 if [ "$HAS_PYTEST_COV" -eq 1 ]; then
-    "$PYTEST_BIN" "${PYTEST_ARGS[@]}" --cov=specifai --cov-report=term --cov-report=html .
+    "$PYTEST_BIN" "${PYTEST_ARGS[@]}" --cov=specifai --cov-report=term --cov-report=html --cov-context=test .
 elif command -v coverage >/dev/null 2>&1; then
     coverage run -m pytest .
     coverage report

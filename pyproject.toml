@@ -73,7 +73,6 @@ keep-runtime-typing = true
 
 [tool.coverage.run]
 source = ["specifai"]
-dynamic_context = "test_function"
 omit = ["**/*_test.py"]
 
 [tool.coverage.report]

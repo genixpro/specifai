@@ -13,6 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ComponentSnapshotsUsersTableRouteImport } from './routes/component-snapshots-users-table'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutWorkspacesRouteImport } from './routes/_layout/workspaces'
@@ -40,6 +41,12 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComponentSnapshotsUsersTableRoute =
+  ComponentSnapshotsUsersTableRouteImport.update({
+    id: '/component-snapshots-users-table',
+    path: '/component-snapshots-users-table',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => rootRouteImport,
@@ -71,6 +78,7 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/component-snapshots-users-table': typeof ComponentSnapshotsUsersTableRoute
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesByTo {
+  '/component-snapshots-users-table': typeof ComponentSnapshotsUsersTableRoute
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -95,6 +104,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
+  '/component-snapshots-users-table': typeof ComponentSnapshotsUsersTableRoute
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -108,6 +118,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/component-snapshots-users-table'
     | '/login'
     | '/recover-password'
     | '/reset-password'
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/component-snapshots-users-table'
     | '/login'
     | '/recover-password'
     | '/reset-password'
@@ -131,6 +143,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_layout'
+    | '/component-snapshots-users-table'
     | '/login'
     | '/recover-password'
     | '/reset-password'
@@ -143,6 +156,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  ComponentSnapshotsUsersTableRoute: typeof ComponentSnapshotsUsersTableRoute
   LayoutRoute: typeof LayoutRouteWithChildren
   LoginRoute: typeof LoginRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
@@ -178,6 +192,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/component-snapshots-users-table': {
+      id: '/component-snapshots-users-table'
+      path: '/component-snapshots-users-table'
+      fullPath: '/component-snapshots-users-table'
+      preLoaderRoute: typeof ComponentSnapshotsUsersTableRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout': {
@@ -245,6 +266,7 @@ const LayoutRouteWithChildren =
   LayoutRoute._addFileChildren(LayoutRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  ComponentSnapshotsUsersTableRoute: ComponentSnapshotsUsersTableRoute,
   LayoutRoute: LayoutRouteWithChildren,
   LoginRoute: LoginRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,

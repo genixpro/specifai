@@ -1,0 +1,131 @@
+services:
+  pw-db:
+    image: postgres:17
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB_PLAYWRIGHT:-specifai_playwright}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - pw-db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB_PLAYWRIGHT:-specifai_playwright}
+
+  pw-mailcatcher:
+    image: schickling/mailcatcher
+    restart: "no"
+
+  pw-prestart:
+    build:
+      context: .
+      dockerfile: specifai/general/backend/Dockerfile
+    depends_on:
+      pw-db:
+        condition: service_healthy
+    command: bash /app/scripts/backend-prestart.sh
+    env_file:
+      - .env
+    environment:
+      - DOMAIN=${DOMAIN}
+      - FRONTEND_HOST=http://pw-frontend
+      - ENVIRONMENT=${ENVIRONMENT}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
+      - MAILCATCHER_HOST=http://pw-mailcatcher:1080
+      - POSTGRES_SERVER=pw-db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB_PLAYWRIGHT:-specifai_playwright}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - SENTRY_DSN=${SENTRY_DSN}
+
+  pw-backend:
+    build:
+      context: .
+      dockerfile: specifai/general/backend/Dockerfile
+    restart: "no"
+    depends_on:
+      pw-db:
+        condition: service_healthy
+      pw-prestart:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      - DOMAIN=${DOMAIN}
+      - FRONTEND_HOST=http://pw-frontend
+      - ENVIRONMENT=${ENVIRONMENT}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
+      - MAILCATCHER_HOST=http://pw-mailcatcher:1080
+      - POSTGRES_SERVER=pw-db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB_PLAYWRIGHT:-specifai_playwright}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - SENTRY_DSN=${SENTRY_DSN}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pw-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://pw-backend:8000
+        - NODE_ENV=production
+    restart: "no"
+    depends_on:
+      pw-backend:
+        condition: service_healthy
+
+  pw-playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright
+      args:
+        - VITE_API_URL=http://pw-backend:8000
+        - NODE_ENV=production
+    ipc: host
+    depends_on:
+      - pw-backend
+      - pw-frontend
+      - pw-mailcatcher
+    env_file:
+      - .env
+    environment:
+      - PLAYWRIGHT_BASE_URL=http://pw-frontend
+      - PLAYWRIGHT_EXTERNAL_SERVER=true
+      - VITE_API_URL=http://pw-backend:8000
+      - MAILCATCHER_HOST=http://pw-mailcatcher:1080
+      - CI=${CI}
+    volumes:
+      - ./specifai/general/frontend/blob-report:/app/blob-report
+      - ./test-results:/app/test-results
+      - ./playwright-report:/app/playwright-report
+    entrypoint: ["bash", "/app/scripts/playwright-wait-and-run.sh"]
+
+volumes:
+  pw-db-data:

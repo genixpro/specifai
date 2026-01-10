@@ -2,7 +2,11 @@ from sqlmodel import Session
 
 from specifai.general.backend.components.security import get_password_hash, verify_password
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
-from specifai.users.backend.data_models.user_models import UserCreate, UserUpdate
+from specifai.users.backend.data_models.user_models import (
+    UserCreate,
+    UserUpdate,
+    UserUpdateMe,
+)
 from specifai.users.backend.data_repository.user_data_repository_postgres import (
     PostgresUserDataRepository,
 )
@@ -57,3 +61,24 @@ def test_user_repository_password_helpers(db: Session) -> None:
     refreshed = repo.get_user_by_id(user.id)
     assert refreshed
     assert verify_password(next_password, refreshed.hashed_password)
+
+
+def test_user_repository_update_helpers(db: Session) -> None:
+    repo = PostgresUserDataRepository(db)
+    user = repo.create_user(
+        user_create=UserCreate(email=random_email(), password=random_lower_string())
+    )
+    updated = repo.update_user_fields(
+        db_user=user, user_data={"full_name": "Updated"}, extra_data=None
+    )
+    assert updated.full_name == "Updated"
+
+    updated_me = repo.update_user_me(
+        db_user=updated, user_in=UserUpdateMe(full_name="Updated Me")
+    )
+    assert updated_me.full_name == "Updated Me"
+
+
+def test_user_repository_none_id_short_circuit(db: Session) -> None:
+    repo = PostgresUserDataRepository(db)
+    assert repo.get_user_by_id(None) is None

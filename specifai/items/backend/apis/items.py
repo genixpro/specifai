@@ -2,6 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+
 from specifai.general.backend.apis.deps import (
     CurrentUser,
     ItemRepoDep,
@@ -54,9 +55,7 @@ def read_items(
 
 
 @router.get("/{id}", response_model=ItemPublic)
-def read_item(
-    item_repo: ItemRepoDep, current_user: CurrentUser, id: uuid.UUID
-) -> Any:
+def read_item(item_repo: ItemRepoDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
     """
     Get item by ID.
     """
@@ -74,17 +73,17 @@ def create_item(
     item_repo: ItemRepoDep,
     workspace_repo: WorkspaceRepoDep,
     current_user: CurrentUser,
-    item_in: ItemCreate
+    item_in: ItemCreate,
 ) -> Any:
     """
     Create new item.
     """
     workspace_id = item_in.workspace_id
     if workspace_id is None:
-        workspace = workspace_repo.get_or_create_default_workspace(
+        default_workspace = workspace_repo.get_or_create_default_workspace(
             owner_id=current_user.id
         )
-        workspace_id = workspace.id
+        workspace_id = default_workspace.id
     else:
         workspace = workspace_repo.get_workspace_by_id(workspace_id)
         if not workspace or (

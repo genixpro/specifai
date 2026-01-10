@@ -67,8 +67,6 @@ def test_workspace_repository_list_without_owner_filter(db: Session) -> None:
         workspace_in=WorkspaceCreate(name="Unfiltered"), owner_id=user.id
     )
 
-    workspaces, count = workspace_repo.list_workspaces(
-        owner_id=None, skip=0, limit=100
-    )
+    workspaces, count = workspace_repo.list_workspaces(owner_id=None, skip=0, limit=100)
     assert count >= 1
     assert any(db_workspace.id == workspace.id for db_workspace in workspaces)

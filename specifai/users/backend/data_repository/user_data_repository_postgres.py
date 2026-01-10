@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from typing import Any
 import uuid
+from typing import Any
 
 from sqlmodel import Session, func, select
 
 from specifai.general.backend.components.security import get_password_hash
-from specifai.users.backend.data_repository.user_data_repository_base import (
-    UserDataRepository,
-)
 from specifai.users.backend.data_models.user_models import (
     User,
     UserCreate,
     UserUpdate,
     UserUpdateMe,
+)
+from specifai.users.backend.data_repository.user_data_repository_base import (
+    UserDataRepository,
 )
 
 

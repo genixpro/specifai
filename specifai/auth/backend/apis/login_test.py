@@ -10,14 +10,16 @@ from specifai.general.backend.utils.test_utils import (
     random_lower_string,
 )
 from specifai.general.backend.utils.utils import generate_password_reset_token
+from specifai.users.backend.components.user_test_utils import (
+    user_authentication_headers,
+)
+from specifai.users.backend.data_models.user_models import UserCreate
 from specifai.users.backend.data_repository.user_data_repository_postgres import (
     PostgresUserDataRepository,
 )
 from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
     PostgresWorkspaceDataRepository,
 )
-from specifai.users.backend.components.user_test_utils import user_authentication_headers
-from specifai.users.backend.data_models.user_models import UserCreate
 
 
 def test_get_access_token(client: TestClient) -> None:

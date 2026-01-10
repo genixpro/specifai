@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from sqlmodel import select
 
 from specifai.general.backend.components.tests_pre_start import init, logger
@@ -44,7 +43,10 @@ def test_init_failure_logs_and_raises() -> None:
     session_context.__exit__.return_value = None
 
     with (
-        patch("specifai.general.backend.components.tests_pre_start.Session", return_value=session_context),
+        patch(
+            "specifai.general.backend.components.tests_pre_start.Session",
+            return_value=session_context,
+        ),
         patch.object(logger, "error") as logger_error,
     ):
         with pytest.raises(RuntimeError, match="db down"):

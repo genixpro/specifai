@@ -6,17 +6,17 @@ from sqlmodel import Session
 
 from specifai.general.backend.components.config import settings
 from specifai.general.backend.components.security import verify_password
+from specifai.general.backend.utils.test_utils import (
+    random_email,
+    random_lower_string,
+)
+from specifai.users.backend.data_models.user_models import User, UserCreate
 from specifai.users.backend.data_repository.user_data_repository_postgres import (
     PostgresUserDataRepository,
 )
 from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
     PostgresWorkspaceDataRepository,
 )
-from specifai.general.backend.utils.test_utils import (
-    random_email,
-    random_lower_string,
-)
-from specifai.users.backend.data_models.user_models import User, UserCreate
 
 
 def create_user_with_workspace(db: Session, user_in: UserCreate) -> User:

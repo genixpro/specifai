@@ -37,7 +37,9 @@ class DummyUserRepository(UserDataRepository):
         return super().update_user_me(db_user=db_user, user_in=user_in)
 
     def set_user_password(self, *, db_user, hashed_password):
-        return super().set_user_password(db_user=db_user, hashed_password=hashed_password)
+        return super().set_user_password(
+            db_user=db_user, hashed_password=hashed_password
+        )
 
     def delete_user(self, *, db_user):
         return super().delete_user(db_user=db_user)

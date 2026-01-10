@@ -1,6 +1,9 @@
 from sqlmodel import Session
 
-from specifai.general.backend.components.security import get_password_hash, verify_password
+from specifai.general.backend.components.security import (
+    get_password_hash,
+    verify_password,
+)
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
 from specifai.users.backend.data_models.user_models import (
     UserCreate,

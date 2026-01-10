@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from typing import Any
 import uuid
+from typing import Any
 
-from sqlmodel import Session, func, select
+from sqlmodel import Session, col, func, select
 
-from specifai.workspaces.backend.data_repository.workspace_data_repository_base import (
-    WorkspaceDataRepository,
-)
 from specifai.workspaces.backend.data_models.workspace_models import (
     Workspace,
     WorkspaceCreate,
+)
+from specifai.workspaces.backend.data_repository.workspace_data_repository_base import (
+    WorkspaceDataRepository,
 )
 
 
@@ -57,13 +57,11 @@ class PostgresWorkspaceDataRepository(WorkspaceDataRepository):
         self._session.delete(workspace)
         self._session.commit()
 
-    def get_or_create_default_workspace(
-        self, *, owner_id: uuid.UUID
-    ) -> Workspace:
+    def get_or_create_default_workspace(self, *, owner_id: uuid.UUID) -> Workspace:
         statement = (
             select(Workspace)
             .where(Workspace.owner_id == owner_id)
-            .order_by(Workspace.name.asc())
+            .order_by(col(Workspace.name).asc())
         )
         workspace = self._session.exec(statement).first()
         if workspace:

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import uuid
 from abc import ABC, abstractmethod
 from typing import Any
-import uuid
 
 from specifai.users.backend.data_models.user_models import (
     User,

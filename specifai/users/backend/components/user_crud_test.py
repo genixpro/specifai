@@ -3,17 +3,17 @@ from sqlmodel import Session
 
 from specifai.auth.backend.components.auth_service import authenticate
 from specifai.general.backend.components.security import verify_password
+from specifai.general.backend.utils.test_utils import (
+    random_email,
+    random_lower_string,
+)
+from specifai.users.backend.data_models.user_models import UserCreate, UserUpdate
 from specifai.users.backend.data_repository.user_data_repository_postgres import (
     PostgresUserDataRepository,
 )
 from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
     PostgresWorkspaceDataRepository,
 )
-from specifai.general.backend.utils.test_utils import (
-    random_email,
-    random_lower_string,
-)
-from specifai.users.backend.data_models.user_models import UserCreate, UserUpdate
 
 
 def test_create_user(db: Session) -> None:

@@ -94,7 +94,7 @@ Nevertheless, if it doesn't detect a change but a syntax error, it will just sto
 To test the backend run:
 
 ```console
-$ bash ./specifai/general/backend/scripts/test.sh
+$ bash ./scripts/backend-test.sh
 ```
 
 The tests run with Pytest, modify and add tests to `./backend/tests/`.
@@ -106,15 +106,15 @@ If you use GitHub Actions the tests will run automatically.
 If your stack is already up and you just want to run the tests, you can use:
 
 ```bash
-docker compose exec backend bash specifai/general/backend/scripts/tests-start.sh
+docker compose exec backend bash /app/scripts/backend-tests-start.sh
 ```
 
-That `/app/specifai/general/backend/scripts/tests-start.sh` script just calls `pytest` after making sure that the rest of the stack is running. If you need to pass extra arguments to `pytest`, you can pass them to that command and they will be forwarded.
+That `/app/scripts/backend-tests-start.sh` script just calls `pytest` after making sure that the rest of the stack is running. If you need to pass extra arguments to `pytest`, you can pass them to that command and they will be forwarded.
 
 For example, to stop on first error:
 
 ```bash
-docker compose exec backend bash specifai/general/backend/scripts/tests-start.sh -x
+docker compose exec backend bash /app/scripts/backend-tests-start.sh -x
 ```
 
 ### Test Coverage
@@ -155,7 +155,7 @@ If you don't want to use migrations at all, uncomment the lines in the file at `
 SQLModel.metadata.create_all(engine)
 ```
 
-and comment the line in the file `specifai/general/backend/scripts/prestart.sh` that contains:
+and comment the line in the file `scripts/backend-prestart.sh` that contains:
 
 ```console
 $ alembic upgrade head

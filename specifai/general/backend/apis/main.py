@@ -5,8 +5,8 @@ from specifai.auth.backend.apis import login
 from specifai.general.backend.apis import utils
 from specifai.general.backend.components.config import settings
 from specifai.items.backend.apis import items
-from specifai.workspaces.backend.apis import workspaces
 from specifai.users.backend.apis import users
+from specifai.workspaces.backend.apis import workspaces
 
 api_router = APIRouter()
 api_router.include_router(login.router)

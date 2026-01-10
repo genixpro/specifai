@@ -22,15 +22,15 @@ jobs:
     outputs:
       changed: ${{ steps.filter.outputs.changed }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
     # For pull requests it's not necessary to checkout the code but for the main branch it is
     - uses: dorny/paths-filter@v3
       id: filter
       with:
         filters: |
           changed:
-            - backend/**
-            - frontend/**
+            - specifai/general/backend/**
+            - specifai/general/frontend/**
             - .env
             - docker-compose*.yml
             - .github/workflows/playwright.yml
@@ -47,11 +47,13 @@ jobs:
         shardTotal: [4]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-node@v6
+    - uses: actions/checkout@v4
+    - name: Load CI env
+      run: cp .env.ci .env
+    - uses: actions/setup-node@v4
       with:
         node-version: lts/*
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.10'
     - name: Setup tmate session
@@ -65,12 +67,12 @@ jobs:
         version: "0.4.15"
         enable-cache: true
     - run: uv sync
-      working-directory: backend
+      working-directory: specifai/general/backend
     - run: npm ci
-      working-directory: frontend
+      working-directory: .
     - run: uv run bash scripts/generate-client.sh
       env:
-        VIRTUAL_ENV: backend/.venv
+        VIRTUAL_ENV: specifai/general/backend/.venv
     - run: docker compose build
     - run: docker compose down -v --remove-orphans
     - name: Run Playwright tests
@@ -78,10 +80,10 @@ jobs:
     - run: docker compose down -v --remove-orphans
     - name: Upload blob report to GitHub Actions Artifacts
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v4
       with:
         name: blob-report-${{ matrix.shardIndex }}
-        path: frontend/blob-report
+        path: specifai/general/frontend/blob-report
         include-hidden-files: true
         retention-days: 1
 
@@ -93,27 +95,26 @@ jobs:
     if: ${{ !cancelled() && needs.changes.outputs.changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    - uses: actions/setup-node@v6
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
         node-version: 20
     - name: Install dependencies
       run: npm ci
-      working-directory: frontend
+      working-directory: .
     - name: Download blob reports from GitHub Actions Artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
-        path: frontend/all-blob-reports
+        path: specifai/general/frontend/all-blob-reports
         pattern: blob-report-*
         merge-multiple: true
     - name: Merge into HTML Report
-      run: npx playwright merge-reports --reporter html ./all-blob-reports
-      working-directory: frontend
+      run: npx playwright merge-reports --reporter html ./specifai/general/frontend/all-blob-reports
     - name: Upload HTML report
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v4
       with:
         name: html-report--attempt-${{ github.run_attempt }}
-        path: frontend/playwright-report
+        path: specifai/general/frontend/playwright-report
         retention-days: 30
         include-hidden-files: true
 

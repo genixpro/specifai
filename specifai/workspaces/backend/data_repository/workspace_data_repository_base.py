@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import uuid
 from abc import ABC, abstractmethod
 from typing import Any
-import uuid
 
 from specifai.workspaces.backend.data_models.workspace_models import (
     Workspace,
@@ -38,7 +38,5 @@ class WorkspaceDataRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_or_create_default_workspace(
-        self, *, owner_id: uuid.UUID
-    ) -> Workspace:
+    def get_or_create_default_workspace(self, *, owner_id: uuid.UUID) -> Workspace:
         raise NotImplementedError

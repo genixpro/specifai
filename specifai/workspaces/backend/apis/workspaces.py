@@ -2,6 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+
 from specifai.general.backend.apis.deps import CurrentUser, WorkspaceRepoDep
 from specifai.general.backend.data_models.message_models import Message
 from specifai.workspaces.backend.data_models.workspace_models import (
@@ -22,9 +23,7 @@ def read_workspaces(
     Retrieve workspaces.
     """
     owner_id = None if current_user.is_superuser else current_user.id
-    workspaces, count = repo.list_workspaces(
-        owner_id=owner_id, skip=skip, limit=limit
-    )
+    workspaces, count = repo.list_workspaces(owner_id=owner_id, skip=skip, limit=limit)
     return WorkspacesPublic(data=workspaces, count=count)
 
 
@@ -53,9 +52,7 @@ def create_workspace(
     """
     Create new workspace.
     """
-    return repo.create_workspace(
-        workspace_in=workspace_in, owner_id=current_user.id
-    )
+    return repo.create_workspace(workspace_in=workspace_in, owner_id=current_user.id)
 
 
 @router.put("/{id}", response_model=WorkspacePublic)

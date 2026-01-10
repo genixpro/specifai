@@ -2,12 +2,12 @@ from sqlmodel import Session
 
 from specifai.general.backend.utils.test_utils import random_lower_string
 from specifai.users.backend.components.user_test_utils import create_random_user
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
-)
 from specifai.workspaces.backend.data_models.workspace_models import (
     Workspace,
     WorkspaceCreate,
+)
+from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
+    PostgresWorkspaceDataRepository,
 )
 
 

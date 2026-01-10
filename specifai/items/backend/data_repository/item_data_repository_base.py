@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import uuid
 from abc import ABC, abstractmethod
 from typing import Any
-import uuid
 
 from specifai.items.backend.data_models.item_models import Item, ItemCreate
 

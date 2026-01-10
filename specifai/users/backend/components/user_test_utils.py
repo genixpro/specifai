@@ -3,16 +3,16 @@ from sqlmodel import Session
 
 from specifai.general.backend.components.config import settings
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
+from specifai.users.backend.data_models.user_models import (
+    User,
+    UserCreate,
+    UserUpdate,
+)
 from specifai.users.backend.data_repository.user_data_repository_postgres import (
     PostgresUserDataRepository,
 )
 from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
     PostgresWorkspaceDataRepository,
-)
-from specifai.users.backend.data_models.user_models import (
-    User,
-    UserCreate,
-    UserUpdate,
 )
 
 
@@ -59,8 +59,6 @@ def authentication_token_from_email(
         user_in_update = UserUpdate(password=password)
         if not user.id:
             raise Exception("User id not set")
-        user = user_repo.update_user_from_update(
-            db_user=user, user_in=user_in_update
-        )
+        user = user_repo.update_user_from_update(db_user=user, user_in=user_in_update)
 
     return user_authentication_headers(client=client, email=email, password=password)

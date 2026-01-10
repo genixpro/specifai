@@ -16,11 +16,13 @@ export type HTTPValidationError = {
 export type ItemCreate = {
     title: string;
     description?: (string | null);
+    workspace_id?: (string | null);
 };
 
 export type ItemPublic = {
     title: string;
     description?: (string | null);
+    workspace_id?: (string | null);
     id: string;
     owner_id: string;
 };
@@ -33,6 +35,7 @@ export type ItemsPublic = {
 export type ItemUpdate = {
     title?: (string | null);
     description?: (string | null);
+    workspace_id?: (string | null);
 };
 
 export type Message = {
@@ -107,9 +110,29 @@ export type ValidationError = {
     type: string;
 };
 
+export type WorkspaceCreate = {
+    name: string;
+};
+
+export type WorkspacePublic = {
+    name: string;
+    id: string;
+    owner_id: string;
+};
+
+export type WorkspacesPublic = {
+    data: Array<WorkspacePublic>;
+    count: number;
+};
+
+export type WorkspaceUpdate = {
+    name?: (string | null);
+};
+
 export type ItemsReadItemsData = {
     limit?: number;
     skip?: number;
+    workspaceId?: (string | null);
 };
 
 export type ItemsReadItemsResponse = (ItemsPublic);
@@ -232,3 +255,35 @@ export type UtilsTestEmailData = {
 export type UtilsTestEmailResponse = (Message);
 
 export type UtilsHealthCheckResponse = (boolean);
+
+export type WorkspacesReadWorkspacesData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type WorkspacesReadWorkspacesResponse = (WorkspacesPublic);
+
+export type WorkspacesCreateWorkspaceData = {
+    requestBody: WorkspaceCreate;
+};
+
+export type WorkspacesCreateWorkspaceResponse = (WorkspacePublic);
+
+export type WorkspacesReadWorkspaceData = {
+    id: string;
+};
+
+export type WorkspacesReadWorkspaceResponse = (WorkspacePublic);
+
+export type WorkspacesUpdateWorkspaceData = {
+    id: string;
+    requestBody: WorkspaceUpdate;
+};
+
+export type WorkspacesUpdateWorkspaceResponse = (WorkspacePublic);
+
+export type WorkspacesDeleteWorkspaceData = {
+    id: string;
+};
+
+export type WorkspacesDeleteWorkspaceResponse = (Message);

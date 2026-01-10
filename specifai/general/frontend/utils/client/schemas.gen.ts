@@ -88,6 +88,18 @@ export const ItemCreateSchema = {
                 }
             ],
             title: 'Description'
+        },
+        workspace_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Workspace Id'
         }
     },
     type: 'object',
@@ -114,6 +126,18 @@ export const ItemPublicSchema = {
                 }
             ],
             title: 'Description'
+        },
+        workspace_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Workspace Id'
         },
         id: {
             type: 'string',
@@ -157,6 +181,18 @@ export const ItemUpdateSchema = {
                 }
             ],
             title: 'Description'
+        },
+        workspace_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Workspace Id'
         }
     },
     type: 'object',
@@ -523,4 +559,81 @@ export const ValidationErrorSchema = {
     type: 'object',
     required: ['loc', 'msg', 'type'],
     title: 'ValidationError'
+} as const;
+
+export const WorkspaceCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'WorkspaceCreate'
+} as const;
+
+export const WorkspacePublicSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        owner_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Owner Id'
+        }
+    },
+    type: 'object',
+    required: ['name', 'id', 'owner_id'],
+    title: 'WorkspacePublic'
+} as const;
+
+export const WorkspaceUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    title: 'WorkspaceUpdate'
+} as const;
+
+export const WorkspacesPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/WorkspacePublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'WorkspacesPublic'
 } as const;

@@ -1,6 +1,6 @@
+import uuid
 from collections.abc import Generator
 from typing import Annotated
-import uuid
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -19,6 +19,7 @@ from specifai.items.backend.data_repository.item_data_repository_base import (
 from specifai.items.backend.data_repository.item_data_repository_postgres import (
     PostgresItemDataRepository,
 )
+from specifai.users.backend.data_models.user_models import User
 from specifai.users.backend.data_repository.user_data_repository_base import (
     UserDataRepository,
 )
@@ -31,7 +32,6 @@ from specifai.workspaces.backend.data_repository.workspace_data_repository_base 
 from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
     PostgresWorkspaceDataRepository,
 )
-from specifai.users.backend.data_models.user_models import User
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -61,9 +61,7 @@ def get_workspace_repository(session: SessionDep) -> WorkspaceDataRepository:
 
 UserRepoDep = Annotated[UserDataRepository, Depends(get_user_repository)]
 ItemRepoDep = Annotated[ItemDataRepository, Depends(get_item_repository)]
-WorkspaceRepoDep = Annotated[
-    WorkspaceDataRepository, Depends(get_workspace_repository)
-]
+WorkspaceRepoDep = Annotated[WorkspaceDataRepository, Depends(get_workspace_repository)]
 
 
 def get_current_user(repo: UserRepoDep, token: TokenDep) -> User:

@@ -54,7 +54,7 @@ services:
       db:
         condition: service_healthy
         restart: true
-    command: bash specifai/general/backend/scripts/prestart.sh
+    command: bash /app/scripts/backend-prestart.sh
     env_file:
       - .env
     environment:

@@ -54,3 +54,19 @@ def test_workspace_repository_default_workspace(db: Session) -> None:
 
     same_workspace = workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     assert same_workspace.id == default_workspace.id
+
+
+def test_workspace_repository_list_without_owner_filter(db: Session) -> None:
+    user_repo = PostgresUserDataRepository(db)
+    workspace_repo = PostgresWorkspaceDataRepository(db)
+
+    user = user_repo.create_user(
+        user_create=UserCreate(email=random_email(), password=random_lower_string())
+    )
+    workspace = workspace_repo.create_workspace(
+        workspace_in=WorkspaceCreate(name="Unfiltered"), owner_id=user.id
+    )
+
+    workspaces, count = workspace_repo.list_workspaces(owner_id=None, skip=0, limit=100)
+    assert count >= 1
+    assert any(db_workspace.id == workspace.id for db_workspace in workspaces)

@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.general.backend.components.config import settings
 from specifai.general.backend.components.security import verify_password
@@ -15,11 +15,11 @@ from specifai.users.backend.components.user_test_utils import (
     user_authentication_headers,
 )
 from specifai.users.backend.data_models.user_models import UserCreate
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
+from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo import (
+    MongoWorkspaceDataRepository,
 )
 
 
@@ -90,7 +90,7 @@ def test_recovery_password_user_not_exits(
     assert r.status_code == 404
 
 
-def test_reset_password(client: TestClient, db: Session) -> None:
+def test_reset_password(client: TestClient, db: Database) -> None:
     email = random_email()
     password = random_lower_string()
     new_password = random_lower_string()
@@ -102,8 +102,8 @@ def test_reset_password(client: TestClient, db: Session) -> None:
         is_active=True,
         is_superuser=False,
     )
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = user_repo.create_user(user_create=user_create)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     token = generate_password_reset_token(email=email)
@@ -119,8 +119,9 @@ def test_reset_password(client: TestClient, db: Session) -> None:
     assert r.status_code == 200
     assert r.json() == {"message": "Password updated successfully"}
 
-    db.refresh(user)
-    assert verify_password(new_password, user.hashed_password)
+    refreshed = user_repo.get_user_by_id(user.id)
+    assert refreshed
+    assert verify_password(new_password, refreshed.hashed_password)
 
 
 def test_reset_password_invalid_token(

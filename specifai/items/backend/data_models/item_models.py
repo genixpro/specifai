@@ -1,19 +1,13 @@
 import uuid
-from typing import TYPE_CHECKING, Optional
 
-from sqlmodel import Field, Relationship, SQLModel
-
-if TYPE_CHECKING:
-    from specifai.users.backend.data_models.user_models import User
-    from specifai.workspaces.backend.data_models.workspace_models import Workspace
-
+from pydantic import BaseModel, ConfigDict, Field
 
 # Shared properties
-class ItemBase(SQLModel):
+class ItemBase(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
     workspace_id: uuid.UUID | None = Field(
-        default=None, foreign_key="workspace.id", ondelete="CASCADE"
+        default=None
     )
 
 
@@ -28,21 +22,20 @@ class ItemUpdate(ItemBase):
 
 
 # Database model, database table inferred from class name
-class Item(ItemBase, table=True):
+class Item(ItemBase):
+    model_config = ConfigDict(extra="allow")
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
-    )
-    owner: Optional["User"] = Relationship(back_populates="items")
-    workspace: Optional["Workspace"] = Relationship(back_populates="items")
+    owner_id: uuid.UUID
 
 
 # Properties to return via API, id is always required
 class ItemPublic(ItemBase):
+    model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     owner_id: uuid.UUID
 
 
-class ItemsPublic(SQLModel):
+class ItemsPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     data: list[ItemPublic]
     count: int

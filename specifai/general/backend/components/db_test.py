@@ -5,7 +5,7 @@ from specifai.general.backend.components import db as db_module
 
 
 def test_init_db_creates_superuser_and_workspace(monkeypatch) -> None:
-    session = MagicMock()
+    db = MagicMock()
     user_repo = MagicMock()
     workspace_repo = MagicMock()
     user = MagicMock()
@@ -13,14 +13,14 @@ def test_init_db_creates_superuser_and_workspace(monkeypatch) -> None:
     user_repo.get_user_by_email.return_value = None
     user_repo.create_user.return_value = user
 
-    monkeypatch.setattr(db_module, "PostgresUserDataRepository", lambda _: user_repo)
+    monkeypatch.setattr(db_module, "MongoUserDataRepository", lambda _: user_repo)
     monkeypatch.setattr(
-        db_module, "PostgresWorkspaceDataRepository", lambda _: workspace_repo
+        db_module, "MongoWorkspaceDataRepository", lambda _: workspace_repo
     )
     monkeypatch.setattr(db_module.settings, "FIRST_SUPERUSER", "admin@example.com")
     monkeypatch.setattr(db_module.settings, "FIRST_SUPERUSER_PASSWORD", "supersecret")
 
-    db_module.init_db(session)
+    db_module.init_db(db)
 
     user_repo.get_user_by_email.assert_called_once_with("admin@example.com")
     assert user_repo.create_user.call_count == 1
@@ -33,20 +33,20 @@ def test_init_db_creates_superuser_and_workspace(monkeypatch) -> None:
 
 
 def test_init_db_uses_existing_superuser(monkeypatch) -> None:
-    session = MagicMock()
+    db = MagicMock()
     user_repo = MagicMock()
     workspace_repo = MagicMock()
     user = MagicMock()
     user.id = uuid.uuid4()
     user_repo.get_user_by_email.return_value = user
 
-    monkeypatch.setattr(db_module, "PostgresUserDataRepository", lambda _: user_repo)
+    monkeypatch.setattr(db_module, "MongoUserDataRepository", lambda _: user_repo)
     monkeypatch.setattr(
-        db_module, "PostgresWorkspaceDataRepository", lambda _: workspace_repo
+        db_module, "MongoWorkspaceDataRepository", lambda _: workspace_repo
     )
     monkeypatch.setattr(db_module.settings, "FIRST_SUPERUSER", "admin@example.com")
 
-    db_module.init_db(session)
+    db_module.init_db(db)
 
     user_repo.get_user_by_email.assert_called_once_with("admin@example.com")
     user_repo.create_user.assert_not_called()

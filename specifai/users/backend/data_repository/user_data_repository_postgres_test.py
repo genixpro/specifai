@@ -1,4 +1,4 @@
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.general.backend.components.security import (
     get_password_hash,
@@ -10,13 +10,13 @@ from specifai.users.backend.data_models.user_models import (
     UserUpdate,
     UserUpdateMe,
 )
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
 
 
-def test_user_repository_crud(db: Session) -> None:
-    repo = PostgresUserDataRepository(db)
+def test_user_repository_crud(db: Database) -> None:
+    repo = MongoUserDataRepository(db)
     email = random_email()
     password = random_lower_string()
 
@@ -46,8 +46,8 @@ def test_user_repository_crud(db: Session) -> None:
     assert repo.get_user_by_id(updated_pw.id) is None
 
 
-def test_user_repository_password_helpers(db: Session) -> None:
-    repo = PostgresUserDataRepository(db)
+def test_user_repository_password_helpers(db: Database) -> None:
+    repo = MongoUserDataRepository(db)
     email = random_email()
     raw_password = random_lower_string()
     hashed_password = get_password_hash(raw_password)
@@ -66,8 +66,8 @@ def test_user_repository_password_helpers(db: Session) -> None:
     assert verify_password(next_password, refreshed.hashed_password)
 
 
-def test_user_repository_update_helpers(db: Session) -> None:
-    repo = PostgresUserDataRepository(db)
+def test_user_repository_update_helpers(db: Database) -> None:
+    repo = MongoUserDataRepository(db)
     user = repo.create_user(
         user_create=UserCreate(email=random_email(), password=random_lower_string())
     )
@@ -82,6 +82,6 @@ def test_user_repository_update_helpers(db: Session) -> None:
     assert updated_me.full_name == "Updated Me"
 
 
-def test_user_repository_none_id_short_circuit(db: Session) -> None:
-    repo = PostgresUserDataRepository(db)
+def test_user_repository_none_id_short_circuit(db: Database) -> None:
+    repo = MongoUserDataRepository(db)
     assert repo.get_user_by_id(None) is None

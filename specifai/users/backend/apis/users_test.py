@@ -2,7 +2,7 @@ import uuid
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.general.backend.components.config import settings
 from specifai.general.backend.components.security import verify_password
@@ -11,17 +11,17 @@ from specifai.general.backend.utils.test_utils import (
     random_lower_string,
 )
 from specifai.users.backend.data_models.user_models import User, UserCreate
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
+from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo import (
+    MongoWorkspaceDataRepository,
 )
 
 
-def create_user_with_workspace(db: Session, user_in: UserCreate) -> User:
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+def create_user_with_workspace(db: Database, user_in: UserCreate) -> User:
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = user_repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     return user
@@ -50,7 +50,7 @@ def test_get_users_normal_user_me(
 
 
 def test_create_user_new_email(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     with (
         patch(
@@ -76,14 +76,14 @@ def test_create_user_new_email(
         )
         assert 200 <= r.status_code < 300
         created_user = r.json()
-        repo = PostgresUserDataRepository(db)
+        repo = MongoUserDataRepository(db)
         user = repo.get_user_by_email(username)
         assert user
         assert user.email == created_user["email"]
 
 
 def test_get_existing_user(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -96,13 +96,13 @@ def test_get_existing_user(
     )
     assert 200 <= r.status_code < 300
     api_user = r.json()
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     existing_user = repo.get_user_by_email(username)
     assert existing_user
     assert existing_user.email == api_user["email"]
 
 
-def test_get_existing_user_current_user(client: TestClient, db: Session) -> None:
+def test_get_existing_user_current_user(client: TestClient, db: Database) -> None:
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
@@ -124,7 +124,7 @@ def test_get_existing_user_current_user(client: TestClient, db: Session) -> None
     )
     assert 200 <= r.status_code < 300
     api_user = r.json()
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     existing_user = repo.get_user_by_email(username)
     assert existing_user
     assert existing_user.email == api_user["email"]
@@ -142,7 +142,7 @@ def test_get_existing_user_permissions_error(
 
 
 def test_create_user_existing_username(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     username = random_email()
     # username = email
@@ -175,7 +175,7 @@ def test_create_user_by_normal_user(
 
 
 def test_retrieve_users(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -197,7 +197,7 @@ def test_retrieve_users(
 
 
 def test_update_user_me(
-    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Database
 ) -> None:
     full_name = "Updated Name"
     email = random_email()
@@ -212,7 +212,7 @@ def test_update_user_me(
     assert updated_user["email"] == email
     assert updated_user["full_name"] == full_name
 
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     user_db = repo.get_user_by_email(email)
     assert user_db
     assert user_db.email == email
@@ -220,7 +220,7 @@ def test_update_user_me(
 
 
 def test_update_password_me(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     new_password = random_lower_string()
     data = {
@@ -236,7 +236,7 @@ def test_update_password_me(
     updated_user = r.json()
     assert updated_user["message"] == "Password updated successfully"
 
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     user_db = repo.get_user_by_email(settings.FIRST_SUPERUSER)
     assert user_db
     assert user_db.email == settings.FIRST_SUPERUSER
@@ -252,9 +252,10 @@ def test_update_password_me(
         headers=superuser_token_headers,
         json=old_data,
     )
-    db.refresh(user_db)
+    user_db = repo.get_user_by_email(settings.FIRST_SUPERUSER)
 
     assert r.status_code == 200
+    assert user_db
     assert verify_password(settings.FIRST_SUPERUSER_PASSWORD, user_db.hashed_password)
 
 
@@ -274,7 +275,7 @@ def test_update_password_me_incorrect_password(
 
 
 def test_update_user_me_email_exists(
-    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Database
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -310,7 +311,7 @@ def test_update_password_me_same_password_error(
     )
 
 
-def test_register_user(client: TestClient, db: Session) -> None:
+def test_register_user(client: TestClient, db: Database) -> None:
     username = random_email()
     password = random_lower_string()
     full_name = random_lower_string()
@@ -324,7 +325,7 @@ def test_register_user(client: TestClient, db: Session) -> None:
     assert created_user["email"] == username
     assert created_user["full_name"] == full_name
 
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     user_db = repo.get_user_by_email(username)
     assert user_db
     assert user_db.email == username
@@ -349,7 +350,7 @@ def test_register_user_already_exists_error(client: TestClient) -> None:
 
 
 def test_update_user(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -367,7 +368,7 @@ def test_update_user(
 
     assert updated_user["full_name"] == "Updated_full_name"
 
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     user_db = repo.get_user_by_email(username)
     assert user_db
     assert user_db.full_name == "Updated_full_name"
@@ -387,7 +388,7 @@ def test_update_user_not_exists(
 
 
 def test_update_user_email_exists(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -409,7 +410,7 @@ def test_update_user_email_exists(
     assert r.json()["detail"] == "User with this email already exists"
 
 
-def test_delete_user_me(client: TestClient, db: Session) -> None:
+def test_delete_user_me(client: TestClient, db: Database) -> None:
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
@@ -432,7 +433,7 @@ def test_delete_user_me(client: TestClient, db: Session) -> None:
     assert r.status_code == 200
     deleted_user = r.json()
     assert deleted_user["message"] == "User deleted successfully"
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     result = repo.get_user_by_id(user_id)
     assert result is None
 
@@ -453,7 +454,7 @@ def test_delete_user_me_as_superuser(
 
 
 def test_delete_user_super_user(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -467,7 +468,7 @@ def test_delete_user_super_user(
     assert r.status_code == 200
     deleted_user = r.json()
     assert deleted_user["message"] == "User deleted successfully"
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     result = repo.get_user_by_id(user_id)
     assert result is None
 
@@ -484,9 +485,9 @@ def test_delete_user_not_found(
 
 
 def test_delete_user_current_super_user_error(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     super_user = repo.get_user_by_email(settings.FIRST_SUPERUSER)
     assert super_user
     user_id = super_user.id
@@ -500,7 +501,7 @@ def test_delete_user_current_super_user_error(
 
 
 def test_delete_user_without_privileges(
-    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Database
 ) -> None:
     username = random_email()
     password = random_lower_string()

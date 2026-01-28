@@ -1,24 +1,24 @@
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
 from specifai.items.backend.data_models.item_models import ItemCreate
-from specifai.items.backend.data_repository.item_data_repository_postgres import (
-    PostgresItemDataRepository,
+from specifai.items.backend.data_repository.item_data_repository_mongo import (
+    MongoItemDataRepository,
 )
 from specifai.users.backend.data_models.user_models import UserCreate
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
 from specifai.workspaces.backend.data_models.workspace_models import WorkspaceCreate
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
+from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo import (
+    MongoWorkspaceDataRepository,
 )
 
 
-def test_item_repository_crud(db: Session) -> None:
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
-    item_repo = PostgresItemDataRepository(db)
+def test_item_repository_crud(db: Database) -> None:
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
+    item_repo = MongoItemDataRepository(db)
 
     user = user_repo.create_user(
         user_create=UserCreate(email=random_email(), password=random_lower_string())
@@ -54,10 +54,10 @@ def test_item_repository_crud(db: Session) -> None:
     assert item_repo.get_item_by_id(updated.id) is None
 
 
-def test_item_repository_delete_by_user(db: Session) -> None:
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
-    item_repo = PostgresItemDataRepository(db)
+def test_item_repository_delete_by_user(db: Database) -> None:
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
+    item_repo = MongoItemDataRepository(db)
 
     user = user_repo.create_user(
         user_create=UserCreate(email=random_email(), password=random_lower_string())

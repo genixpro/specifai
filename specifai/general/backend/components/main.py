@@ -5,6 +5,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from specifai.general.backend.apis.main import api_router
 from specifai.general.backend.components.config import settings
+from specifai.general.backend.components.db import close_database
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -19,6 +20,11 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
 )
+
+
+@app.on_event("shutdown")
+def shutdown_db() -> None:
+    close_database()
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:

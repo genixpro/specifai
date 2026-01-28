@@ -1,19 +1,19 @@
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
 from specifai.users.backend.data_models.user_models import UserCreate
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
 from specifai.workspaces.backend.data_models.workspace_models import WorkspaceCreate
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
+from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo import (
+    MongoWorkspaceDataRepository,
 )
 
 
-def test_workspace_repository_crud(db: Session) -> None:
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+def test_workspace_repository_crud(db: Database) -> None:
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
 
     user = user_repo.create_user(
         user_create=UserCreate(email=random_email(), password=random_lower_string())
@@ -42,9 +42,9 @@ def test_workspace_repository_crud(db: Session) -> None:
     assert workspace_repo.get_workspace_by_id(updated.id) is None
 
 
-def test_workspace_repository_default_workspace(db: Session) -> None:
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+def test_workspace_repository_default_workspace(db: Database) -> None:
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
 
     user = user_repo.create_user(
         user_create=UserCreate(email=random_email(), password=random_lower_string())
@@ -56,9 +56,9 @@ def test_workspace_repository_default_workspace(db: Session) -> None:
     assert same_workspace.id == default_workspace.id
 
 
-def test_workspace_repository_list_without_owner_filter(db: Session) -> None:
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+def test_workspace_repository_list_without_owner_filter(db: Database) -> None:
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
 
     user = user_repo.create_user(
         user_create=UserCreate(email=random_email(), password=random_lower_string())

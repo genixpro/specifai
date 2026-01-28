@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.general.backend.components.config import settings
 from specifai.workspaces.backend.components.workspace_test_utils import (
@@ -26,7 +26,7 @@ def test_create_workspace(
 
 
 def test_read_workspace(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     workspace = create_random_workspace(db)
     response = client.get(
@@ -53,7 +53,7 @@ def test_read_workspace_not_found(
 
 
 def test_read_workspace_not_enough_permissions(
-    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Database
 ) -> None:
     workspace = create_random_workspace(db)
     response = client.get(
@@ -66,7 +66,7 @@ def test_read_workspace_not_enough_permissions(
 
 
 def test_read_workspaces(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     create_random_workspace(db)
     create_random_workspace(db)
@@ -80,7 +80,7 @@ def test_read_workspaces(
 
 
 def test_delete_workspace(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+    client: TestClient, superuser_token_headers: dict[str, str], db: Database
 ) -> None:
     workspace = create_random_workspace(db)
     response = client.delete(

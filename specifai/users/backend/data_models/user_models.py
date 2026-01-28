@@ -1,16 +1,10 @@
 import uuid
-from typing import TYPE_CHECKING
 
-from pydantic import EmailStr
-from sqlmodel import Field, Relationship, SQLModel
-
-if TYPE_CHECKING:
-    from specifai.items.backend.data_models.item_models import Item
-    from specifai.workspaces.backend.data_models.workspace_models import Workspace
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # Shared properties
-class UserBase(SQLModel):
+class UserBase(BaseModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
@@ -22,7 +16,7 @@ class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
 
 
-class UserRegister(SQLModel):
+class UserRegister(BaseModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
@@ -34,31 +28,29 @@ class UserUpdate(UserBase):
     password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
-class UserUpdateMe(SQLModel):
+class UserUpdateMe(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
 
 
-class UpdatePassword(SQLModel):
+class UpdatePassword(BaseModel):
     current_password: str = Field(min_length=8, max_length=128)
     new_password: str = Field(min_length=8, max_length=128)
 
 
-# Database model, database table inferred from class name
-class User(UserBase, table=True):
+class User(UserBase):
+    model_config = ConfigDict(extra="allow")
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
-    workspaces: list["Workspace"] = Relationship(
-        back_populates="owner", cascade_delete=True
-    )
 
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
+    model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
 
 
-class UsersPublic(SQLModel):
+class UsersPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     data: list[UserPublic]
     count: int

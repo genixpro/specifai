@@ -156,8 +156,8 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  ComponentSnapshotsUsersTableRoute: typeof ComponentSnapshotsUsersTableRoute
   LayoutRoute: typeof LayoutRouteWithChildren
+  ComponentSnapshotsUsersTableRoute: typeof ComponentSnapshotsUsersTableRoute
   LoginRoute: typeof LoginRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -266,8 +266,8 @@ const LayoutRouteWithChildren =
   LayoutRoute._addFileChildren(LayoutRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  ComponentSnapshotsUsersTableRoute: ComponentSnapshotsUsersTableRoute,
   LayoutRoute: LayoutRouteWithChildren,
+  ComponentSnapshotsUsersTableRoute: ComponentSnapshotsUsersTableRoute,
   LoginRoute: LoginRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,

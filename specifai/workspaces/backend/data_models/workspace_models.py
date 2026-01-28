@@ -1,14 +1,9 @@
 import uuid
-from typing import TYPE_CHECKING, Optional
 
-from sqlmodel import Field, Relationship, SQLModel
-
-if TYPE_CHECKING:
-    from specifai.items.backend.data_models.item_models import Item
-    from specifai.users.backend.data_models.user_models import User
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class WorkspaceBase(SQLModel):
+class WorkspaceBase(BaseModel):
     name: str = Field(min_length=1, max_length=255)
 
 
@@ -16,24 +11,23 @@ class WorkspaceCreate(WorkspaceBase):
     pass
 
 
-class WorkspaceUpdate(SQLModel):
+class WorkspaceUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
 
 
-class Workspace(WorkspaceBase, table=True):
+class Workspace(WorkspaceBase):
+    model_config = ConfigDict(extra="allow")
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
-    )
-    owner: Optional["User"] = Relationship(back_populates="workspaces")
-    items: list["Item"] = Relationship(back_populates="workspace", cascade_delete=True)
+    owner_id: uuid.UUID
 
 
 class WorkspacePublic(WorkspaceBase):
+    model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     owner_id: uuid.UUID
 
 
-class WorkspacesPublic(SQLModel):
+class WorkspacesPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     data: list[WorkspacePublic]
     count: int

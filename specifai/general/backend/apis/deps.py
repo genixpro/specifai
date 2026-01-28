@@ -7,30 +7,30 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.auth.backend.data_models.auth_models import TokenPayload
 from specifai.general.backend.components import security
 from specifai.general.backend.components.config import settings
-from specifai.general.backend.components.db import engine
+from specifai.general.backend.components.db import get_database
 from specifai.items.backend.data_repository.item_data_repository_base import (
     ItemDataRepository,
 )
-from specifai.items.backend.data_repository.item_data_repository_postgres import (
-    PostgresItemDataRepository,
+from specifai.items.backend.data_repository.item_data_repository_mongo import (
+    MongoItemDataRepository,
 )
 from specifai.users.backend.data_models.user_models import User
 from specifai.users.backend.data_repository.user_data_repository_base import (
     UserDataRepository,
 )
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
 from specifai.workspaces.backend.data_repository.workspace_data_repository_base import (
     WorkspaceDataRepository,
 )
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
+from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo import (
+    MongoWorkspaceDataRepository,
 )
 
 reusable_oauth2 = OAuth2PasswordBearer(
@@ -38,25 +38,24 @@ reusable_oauth2 = OAuth2PasswordBearer(
 )
 
 
-def get_db() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        yield session
+def get_db() -> Generator[Database, None, None]:
+    yield get_database()
 
 
-SessionDep = Annotated[Session, Depends(get_db)]
+DatabaseDep = Annotated[Database, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def get_user_repository(session: SessionDep) -> UserDataRepository:
-    return PostgresUserDataRepository(session)
+def get_user_repository(db: DatabaseDep) -> UserDataRepository:
+    return MongoUserDataRepository(db)
 
 
-def get_item_repository(session: SessionDep) -> ItemDataRepository:
-    return PostgresItemDataRepository(session)
+def get_item_repository(db: DatabaseDep) -> ItemDataRepository:
+    return MongoItemDataRepository(db)
 
 
-def get_workspace_repository(session: SessionDep) -> WorkspaceDataRepository:
-    return PostgresWorkspaceDataRepository(session)
+def get_workspace_repository(db: DatabaseDep) -> WorkspaceDataRepository:
+    return MongoWorkspaceDataRepository(db)
 
 
 UserRepoDep = Annotated[UserDataRepository, Depends(get_user_repository)]

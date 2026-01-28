@@ -45,15 +45,10 @@ services:
       - traefik-public
       - default
 
-  db:
+  mongo:
     restart: "no"
     ports:
-      - "5432:5432"
-
-  adminer:
-    restart: "no"
-    ports:
-      - "8080:8080"
+      - "27017:27017"
 
   backend:
     restart: "no"

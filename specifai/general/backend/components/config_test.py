@@ -8,8 +8,8 @@ from specifai.general.backend.components.config import Settings, parse_cors
 def _base_settings_kwargs() -> dict[str, object]:
     return {
         "PROJECT_NAME": "Specifai",
-        "POSTGRES_SERVER": "db.local",
-        "POSTGRES_USER": "postgres",
+        "MONGODB_SERVER": "db.local",
+        "MONGODB_DB": "specifai",
         "FIRST_SUPERUSER": "admin@example.com",
         "FIRST_SUPERUSER_PASSWORD": "supersecret",
         "EMAILS_FROM_EMAIL": "no-reply@example.com",
@@ -58,18 +58,18 @@ def test_settings_all_cors_origins_and_mailcatcher_defaults() -> None:
     assert settings.emails_enabled is True
 
 
-def test_settings_sqlalchemy_database_uri() -> None:
+def test_settings_mongodb_uri() -> None:
     base_kwargs = _base_settings_kwargs()
-    base_kwargs["POSTGRES_SERVER"] = "db.internal"
+    base_kwargs["MONGODB_SERVER"] = "db.internal"
     settings = Settings(
         **base_kwargs,
-        POSTGRES_PORT=5433,
-        POSTGRES_PASSWORD="password",
-        POSTGRES_DB="specifai",
+        MONGODB_PORT=27019,
+        MONGODB_USER="mongo",
+        MONGODB_PASSWORD="password",
     )
     assert (
-        str(settings.SQLALCHEMY_DATABASE_URI)
-        == "postgresql+psycopg://postgres:password@db.internal:5433/specifai"
+        settings.mongo_uri
+        == "mongodb://mongo:password@db.internal:27019/specifai"
     )
 
 
@@ -81,7 +81,7 @@ def test_settings_default_secret_warns_in_local() -> None:
         Settings(
             **base_kwargs,
             SECRET_KEY="changethis",
-            POSTGRES_PASSWORD="changethis",
+            MONGODB_PASSWORD="changethis",
             ENVIRONMENT="local",
         )
         warning_messages = [

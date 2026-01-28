@@ -316,7 +316,9 @@ export const UserCreateSchema = {
             type: 'string',
             maxLength: 255,
             format: 'email',
-            title: 'Email'
+            title: 'Email',
+            index: true,
+            unique: true
         },
         is_active: {
             type: 'boolean',
@@ -358,7 +360,9 @@ export const UserPublicSchema = {
             type: 'string',
             maxLength: 255,
             format: 'email',
-            title: 'Email'
+            title: 'Email',
+            index: true,
+            unique: true
         },
         is_active: {
             type: 'boolean',

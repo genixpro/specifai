@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -19,7 +20,9 @@ from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo
 )
 
 
-def create_user_with_workspace(db: Database, user_in: UserCreate) -> User:
+def create_user_with_workspace(
+    db: Database[dict[str, Any]], user_in: UserCreate
+) -> User:
     user_repo = MongoUserDataRepository(db)
     workspace_repo = MongoWorkspaceDataRepository(db)
     user = user_repo.create_user(user_create=user_in)
@@ -50,7 +53,9 @@ def test_get_users_normal_user_me(
 
 
 def test_create_user_new_email(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     with (
         patch(
@@ -83,7 +88,9 @@ def test_create_user_new_email(
 
 
 def test_get_existing_user(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -102,7 +109,9 @@ def test_get_existing_user(
     assert existing_user.email == api_user["email"]
 
 
-def test_get_existing_user_current_user(client: TestClient, db: Database) -> None:
+def test_get_existing_user_current_user(
+    client: TestClient, db: Database[dict[str, Any]]
+) -> None:
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
@@ -142,7 +151,9 @@ def test_get_existing_user_permissions_error(
 
 
 def test_create_user_existing_username(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     username = random_email()
     # username = email
@@ -175,7 +186,9 @@ def test_create_user_by_normal_user(
 
 
 def test_retrieve_users(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -197,7 +210,9 @@ def test_retrieve_users(
 
 
 def test_update_user_me(
-    client: TestClient, normal_user_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     full_name = "Updated Name"
     email = random_email()
@@ -220,7 +235,9 @@ def test_update_user_me(
 
 
 def test_update_password_me(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     new_password = random_lower_string()
     data = {
@@ -275,7 +292,9 @@ def test_update_password_me_incorrect_password(
 
 
 def test_update_user_me_email_exists(
-    client: TestClient, normal_user_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -311,7 +330,7 @@ def test_update_password_me_same_password_error(
     )
 
 
-def test_register_user(client: TestClient, db: Database) -> None:
+def test_register_user(client: TestClient, db: Database[dict[str, Any]]) -> None:
     username = random_email()
     password = random_lower_string()
     full_name = random_lower_string()
@@ -350,7 +369,9 @@ def test_register_user_already_exists_error(client: TestClient) -> None:
 
 
 def test_update_user(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -388,7 +409,9 @@ def test_update_user_not_exists(
 
 
 def test_update_user_email_exists(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -410,7 +433,7 @@ def test_update_user_email_exists(
     assert r.json()["detail"] == "User with this email already exists"
 
 
-def test_delete_user_me(client: TestClient, db: Database) -> None:
+def test_delete_user_me(client: TestClient, db: Database[dict[str, Any]]) -> None:
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
@@ -454,7 +477,9 @@ def test_delete_user_me_as_superuser(
 
 
 def test_delete_user_super_user(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     username = random_email()
     password = random_lower_string()
@@ -485,7 +510,9 @@ def test_delete_user_not_found(
 
 
 def test_delete_user_current_super_user_error(
-    client: TestClient, superuser_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     repo = MongoUserDataRepository(db)
     super_user = repo.get_user_by_email(settings.FIRST_SUPERUSER)
@@ -501,7 +528,9 @@ def test_delete_user_current_super_user_error(
 
 
 def test_delete_user_without_privileges(
-    client: TestClient, normal_user_token_headers: dict[str, str], db: Database
+    client: TestClient,
+    normal_user_token_headers: dict[str, str],
+    db: Database[dict[str, Any]],
 ) -> None:
     username = random_email()
     password = random_lower_string()

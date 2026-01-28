@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterable
 from typing import Any
 
 from pymongo import ASCENDING
@@ -16,7 +17,7 @@ from specifai.workspaces.backend.data_repository.workspace_data_repository_base 
 
 
 class MongoWorkspaceDataRepository(WorkspaceDataRepository):
-    def __init__(self, db: Database) -> None:
+    def __init__(self, db: Database[dict[str, Any]]) -> None:
         self._db = db
         self._collection = db["workspaces"]
 
@@ -70,7 +71,9 @@ class MongoWorkspaceDataRepository(WorkspaceDataRepository):
         workspace_in = WorkspaceCreate(name="Personal")
         return self.create_workspace(workspace_in=workspace_in, owner_id=owner_id)
 
-    def _serialize_workspace_update(self, update_payload: dict[str, Any]) -> dict[str, Any]:
+    def _serialize_workspace_update(
+        self, update_payload: dict[str, Any]
+    ) -> dict[str, Any]:
         payload: dict[str, Any] = {}
         for key, value in update_payload.items():
             if value is None:
@@ -95,5 +98,12 @@ class MongoWorkspaceDataRepository(WorkspaceDataRepository):
             data["owner_id"] = uuid.UUID(str(data["owner_id"]))
         return Workspace.model_validate(data)
 
-    def _cursor_to_workspaces(self, cursor) -> list[Workspace]:
-        return [self._doc_to_workspace(doc) for doc in cursor if doc is not None]  # type: ignore[arg-type]
+    def _cursor_to_workspaces(
+        self, cursor: Iterable[dict[str, Any]]
+    ) -> list[Workspace]:
+        workspaces: list[Workspace] = []
+        for doc in cursor:
+            workspace = self._doc_to_workspace(doc)
+            if workspace:
+                workspaces.append(workspace)
+        return workspaces

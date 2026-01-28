@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi.testclient import TestClient
 from pymongo.database import Database
 
@@ -28,7 +30,7 @@ def user_authentication_headers(
     return headers
 
 
-def create_random_user(db: Database) -> User:
+def create_random_user(db: Database[dict[str, Any]]) -> User:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
@@ -40,7 +42,7 @@ def create_random_user(db: Database) -> User:
 
 
 def authentication_token_from_email(
-    *, client: TestClient, email: str, db: Database
+    *, client: TestClient, email: str, db: Database[dict[str, Any]]
 ) -> dict[str, str]:
     """
     Return a valid token for the user with given email.

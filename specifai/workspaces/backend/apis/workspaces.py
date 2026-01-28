@@ -24,7 +24,10 @@ def read_workspaces(
     """
     owner_id = None if current_user.is_superuser else current_user.id
     workspaces, count = repo.list_workspaces(owner_id=owner_id, skip=skip, limit=limit)
-    return WorkspacesPublic(data=workspaces, count=count)
+    public_workspaces = [
+        WorkspacePublic.model_validate(workspace) for workspace in workspaces
+    ]
+    return WorkspacesPublic(data=public_workspaces, count=count)
 
 
 @router.get("/{id}", response_model=WorkspacePublic)

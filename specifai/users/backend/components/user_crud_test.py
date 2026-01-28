@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi.encoders import jsonable_encoder
 from pymongo.database import Database
 
@@ -16,7 +18,7 @@ from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo
 )
 
 
-def test_create_user(db: Database) -> None:
+def test_create_user(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
@@ -28,7 +30,7 @@ def test_create_user(db: Database) -> None:
     assert hasattr(user, "hashed_password")
 
 
-def test_authenticate_user(db: Database) -> None:
+def test_authenticate_user(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
@@ -41,7 +43,7 @@ def test_authenticate_user(db: Database) -> None:
     assert user.email == authenticated_user.email
 
 
-def test_not_authenticate_user(db: Database) -> None:
+def test_not_authenticate_user(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     repo = MongoUserDataRepository(db)
@@ -49,7 +51,7 @@ def test_not_authenticate_user(db: Database) -> None:
     assert user is None
 
 
-def test_check_if_user_is_active(db: Database) -> None:
+def test_check_if_user_is_active(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
@@ -60,7 +62,7 @@ def test_check_if_user_is_active(db: Database) -> None:
     assert user.is_active is True
 
 
-def test_check_if_user_is_active_inactive(db: Database) -> None:
+def test_check_if_user_is_active_inactive(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password, disabled=True)
@@ -71,7 +73,7 @@ def test_check_if_user_is_active_inactive(db: Database) -> None:
     assert user.is_active
 
 
-def test_check_if_user_is_superuser(db: Database) -> None:
+def test_check_if_user_is_superuser(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password, is_superuser=True)
@@ -82,7 +84,7 @@ def test_check_if_user_is_superuser(db: Database) -> None:
     assert user.is_superuser is True
 
 
-def test_check_if_user_is_superuser_normal_user(db: Database) -> None:
+def test_check_if_user_is_superuser_normal_user(db: Database[dict[str, Any]]) -> None:
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
@@ -93,7 +95,7 @@ def test_check_if_user_is_superuser_normal_user(db: Database) -> None:
     assert user.is_superuser is False
 
 
-def test_get_user(db: Database) -> None:
+def test_get_user(db: Database[dict[str, Any]]) -> None:
     password = random_lower_string()
     username = random_email()
     user_in = UserCreate(email=username, password=password, is_superuser=True)
@@ -108,7 +110,7 @@ def test_get_user(db: Database) -> None:
     assert jsonable_encoder(user) == jsonable_encoder(user_2)
 
 
-def test_update_user(db: Database) -> None:
+def test_update_user(db: Database[dict[str, Any]]) -> None:
     password = random_lower_string()
     email = random_email()
     user_in = UserCreate(email=email, password=password, is_superuser=True)

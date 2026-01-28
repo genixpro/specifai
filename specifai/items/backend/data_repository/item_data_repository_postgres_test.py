@@ -1,3 +1,5 @@
+from typing import Any
+
 from pymongo.database import Database
 
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
@@ -15,7 +17,7 @@ from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo
 )
 
 
-def test_item_repository_crud(db: Database) -> None:
+def test_item_repository_crud(db: Database[dict[str, Any]]) -> None:
     user_repo = MongoUserDataRepository(db)
     workspace_repo = MongoWorkspaceDataRepository(db)
     item_repo = MongoItemDataRepository(db)
@@ -54,7 +56,7 @@ def test_item_repository_crud(db: Database) -> None:
     assert item_repo.get_item_by_id(updated.id) is None
 
 
-def test_item_repository_delete_by_user(db: Database) -> None:
+def test_item_repository_delete_by_user(db: Database[dict[str, Any]]) -> None:
     user_repo = MongoUserDataRepository(db)
     workspace_repo = MongoWorkspaceDataRepository(db)
     item_repo = MongoItemDataRepository(db)

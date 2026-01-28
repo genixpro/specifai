@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterable
 from typing import Any
 
 from pymongo.database import Database
@@ -18,7 +19,7 @@ from specifai.users.backend.data_repository.user_data_repository_base import (
 
 
 class MongoUserDataRepository(UserDataRepository):
-    def __init__(self, db: Database) -> None:
+    def __init__(self, db: Database[dict[str, Any]]) -> None:
         self._db = db
         self._collection = db["users"]
 
@@ -77,7 +78,8 @@ class MongoUserDataRepository(UserDataRepository):
         if not update_payload:
             return db_user
         self._collection.update_one(
-            {"_id": str(db_user.id)}, {"$set": self._serialize_user_update(update_payload)}
+            {"_id": str(db_user.id)},
+            {"$set": self._serialize_user_update(update_payload)},
         )
         refreshed = self.get_user_by_id(db_user.id)
         if refreshed is None:
@@ -125,5 +127,10 @@ class MongoUserDataRepository(UserDataRepository):
         data["id"] = uuid.UUID(str(data.pop("_id")))
         return User.model_validate(data)
 
-    def _cursor_to_users(self, cursor) -> list[User]:
-        return [self._doc_to_user(doc) for doc in cursor if doc is not None]  # type: ignore[arg-type]
+    def _cursor_to_users(self, cursor: Iterable[dict[str, Any]]) -> list[User]:
+        users: list[User] = []
+        for doc in cursor:
+            user = self._doc_to_user(doc)
+            if user:
+                users.append(user)
+        return users

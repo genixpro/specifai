@@ -51,7 +51,8 @@ def read_items(
             limit=limit,
         )
 
-    return ItemsPublic(data=items, count=count)
+    public_items = [ItemPublic.model_validate(item) for item in items]
+    return ItemsPublic(data=public_items, count=count)
 
 
 @router.get("/{id}", response_model=ItemPublic)

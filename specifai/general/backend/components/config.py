@@ -66,9 +66,7 @@ class Settings(BaseSettings):
         auth = ""
         if self.MONGODB_USER and self.MONGODB_PASSWORD:
             auth = f"{self.MONGODB_USER}:{self.MONGODB_PASSWORD}@"
-        return (
-            f"mongodb://{auth}{self.MONGODB_SERVER}:{self.MONGODB_PORT}/{self.MONGODB_DB}"
-        )
+        return f"mongodb://{auth}{self.MONGODB_SERVER}:{self.MONGODB_PORT}/{self.MONGODB_DB}"
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False

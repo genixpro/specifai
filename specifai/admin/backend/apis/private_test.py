@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from fastapi.testclient import TestClient
 from pymongo.database import Database
@@ -9,7 +10,7 @@ from specifai.users.backend.data_repository.user_data_repository_mongo import (
 )
 
 
-def test_create_user(client: TestClient, db: Database) -> None:
+def test_create_user(client: TestClient, db: Database[dict[str, Any]]) -> None:
     r = client.post(
         f"{settings.API_V1_STR}/private/users/",
         json={

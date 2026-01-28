@@ -1,6 +1,6 @@
 import uuid
 from collections.abc import Generator
-from typing import Annotated
+from typing import Annotated, Any
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -38,11 +38,11 @@ reusable_oauth2 = OAuth2PasswordBearer(
 )
 
 
-def get_db() -> Generator[Database, None, None]:
+def get_db() -> Generator[Database[dict[str, Any]], None, None]:
     yield get_database()
 
 
-DatabaseDep = Annotated[Database, Depends(get_db)]
+DatabaseDep = Annotated[Database[dict[str, Any]], Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 

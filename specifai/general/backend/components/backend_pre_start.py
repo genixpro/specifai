@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any
 
 from pymongo.database import Database
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
@@ -21,7 +22,7 @@ reraise = os.getenv("BACKEND_PRESTART_RERAISE", "0") == "1"
     after=after_log(logger, logging.WARN),
     reraise=reraise,
 )
-def init(db: Database) -> None:
+def init(db: Database[dict[str, Any]]) -> None:
     try:
         db.command("ping")
     except Exception as e:

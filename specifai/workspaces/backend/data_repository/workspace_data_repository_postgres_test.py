@@ -1,3 +1,5 @@
+from typing import Any
+
 from pymongo.database import Database
 
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
@@ -11,7 +13,7 @@ from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo
 )
 
 
-def test_workspace_repository_crud(db: Database) -> None:
+def test_workspace_repository_crud(db: Database[dict[str, Any]]) -> None:
     user_repo = MongoUserDataRepository(db)
     workspace_repo = MongoWorkspaceDataRepository(db)
 
@@ -42,7 +44,7 @@ def test_workspace_repository_crud(db: Database) -> None:
     assert workspace_repo.get_workspace_by_id(updated.id) is None
 
 
-def test_workspace_repository_default_workspace(db: Database) -> None:
+def test_workspace_repository_default_workspace(db: Database[dict[str, Any]]) -> None:
     user_repo = MongoUserDataRepository(db)
     workspace_repo = MongoWorkspaceDataRepository(db)
 
@@ -56,7 +58,9 @@ def test_workspace_repository_default_workspace(db: Database) -> None:
     assert same_workspace.id == default_workspace.id
 
 
-def test_workspace_repository_list_without_owner_filter(db: Database) -> None:
+def test_workspace_repository_list_without_owner_filter(
+    db: Database[dict[str, Any]],
+) -> None:
     user_repo = MongoUserDataRepository(db)
     workspace_repo = MongoWorkspaceDataRepository(db)
 

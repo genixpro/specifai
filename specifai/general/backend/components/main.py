@@ -26,6 +26,7 @@ app = FastAPI(
 def shutdown_db() -> None:
     close_database()
 
+
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(

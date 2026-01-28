@@ -40,7 +40,8 @@ def read_users(repo: UserRepoDep, skip: int = 0, limit: int = 100) -> Any:
     Retrieve users.
     """
     users, count = repo.list_users(skip=skip, limit=limit)
-    return UsersPublic(data=users, count=count)
+    public_users = [UserPublic.model_validate(user) for user in users]
+    return UsersPublic(data=public_users, count=count)
 
 
 @router.post(

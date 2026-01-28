@@ -1,5 +1,6 @@
 import os
 from collections.abc import Generator
+from typing import Any
 
 import mongomock
 import pytest
@@ -28,7 +29,7 @@ db_module.mongo_db = mongo_client[TEST_DB_NAME]
 
 
 @pytest.fixture(scope="session", autouse=True)
-def db() -> Generator[Database, None, None]:
+def db() -> Generator[Database[dict[str, Any]], None, None]:
     db = db_module.get_database()
     init_db(db)
     yield db
@@ -47,7 +48,9 @@ def superuser_token_headers(client: TestClient) -> dict[str, str]:
 
 
 @pytest.fixture(scope="module")
-def normal_user_token_headers(client: TestClient, db: Database) -> dict[str, str]:
+def normal_user_token_headers(
+    client: TestClient, db: Database[dict[str, Any]]
+) -> dict[str, str]:
     return authentication_token_from_email(
         client=client, email=settings.EMAIL_TEST_USER, db=db
     )

@@ -2,13 +2,12 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
 
+
 # Shared properties
 class ItemBase(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
-    workspace_id: uuid.UUID | None = Field(
-        default=None
-    )
+    workspace_id: uuid.UUID | None = Field(default=None)
 
 
 # Properties to receive on item creation
@@ -24,7 +23,7 @@ class ItemUpdate(ItemBase):
 # Database model, database table inferred from class name
 class Item(ItemBase):
     model_config = ConfigDict(extra="allow")
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
     owner_id: uuid.UUID
 
 

@@ -5,7 +5,10 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # Shared properties
 class UserBase(BaseModel):
-    email: EmailStr = Field(unique=True, index=True, max_length=255)
+    email: EmailStr = Field(
+        max_length=255,
+        json_schema_extra={"unique": True, "index": True},
+    )
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
@@ -40,7 +43,7 @@ class UpdatePassword(BaseModel):
 
 class User(UserBase):
     model_config = ConfigDict(extra="allow")
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
     hashed_password: str
 
 

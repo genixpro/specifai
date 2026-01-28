@@ -17,7 +17,7 @@ class WorkspaceUpdate(BaseModel):
 
 class Workspace(WorkspaceBase):
     model_config = ConfigDict(extra="allow")
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
     owner_id: uuid.UUID
 
 

@@ -1,3 +1,4 @@
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -90,7 +91,7 @@ def test_recovery_password_user_not_exits(
     assert r.status_code == 404
 
 
-def test_reset_password(client: TestClient, db: Database) -> None:
+def test_reset_password(client: TestClient, db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     new_password = random_lower_string()

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterable
 from typing import Any
 
 from pymongo.database import Database
@@ -12,7 +13,7 @@ from specifai.items.backend.data_repository.item_data_repository_base import (
 
 
 class MongoItemDataRepository(ItemDataRepository):
-    def __init__(self, db: Database) -> None:
+    def __init__(self, db: Database[dict[str, Any]]) -> None:
         self._collection = db["items"]
 
     def get_item_by_id(self, item_id: uuid.UUID) -> Item | None:
@@ -53,9 +54,7 @@ class MongoItemDataRepository(ItemDataRepository):
     def update_item(self, *, item: Item, update_data: dict[str, Any]) -> Item:
         update_payload = self._serialize_item_update(update_data)
         if update_payload:
-            self._collection.update_one(
-                {"_id": str(item.id)}, {"$set": update_payload}
-            )
+            self._collection.update_one({"_id": str(item.id)}, {"$set": update_payload})
         refreshed = self.get_item_by_id(item.id)
         if refreshed is None:
             raise ValueError("Item not found after update")
@@ -94,5 +93,10 @@ class MongoItemDataRepository(ItemDataRepository):
             data["workspace_id"] = uuid.UUID(str(data["workspace_id"]))
         return Item.model_validate(data)
 
-    def _cursor_to_items(self, cursor) -> list[Item]:
-        return [self._doc_to_item(doc) for doc in cursor if doc is not None]  # type: ignore[arg-type]
+    def _cursor_to_items(self, cursor: Iterable[dict[str, Any]]) -> list[Item]:
+        items: list[Item] = []
+        for doc in cursor:
+            item = self._doc_to_item(doc)
+            if item:
+                items.append(item)
+        return items

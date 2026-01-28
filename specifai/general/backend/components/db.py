@@ -1,3 +1,5 @@
+from typing import Any
+
 from pymongo import MongoClient
 from pymongo.database import Database
 
@@ -10,11 +12,11 @@ from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo
     MongoWorkspaceDataRepository,
 )
 
-mongo_client = MongoClient(settings.mongo_uri)
-mongo_db = mongo_client[settings.MONGODB_DB]
+mongo_client: MongoClient[dict[str, Any]] = MongoClient(settings.mongo_uri)
+mongo_db: Database[dict[str, Any]] = mongo_client[settings.MONGODB_DB]
 
 
-def get_database() -> Database:
+def get_database() -> Database[dict[str, Any]]:
     return mongo_db
 
 
@@ -22,7 +24,7 @@ def close_database() -> None:
     mongo_client.close()
 
 
-def init_db(db: Database) -> None:
+def init_db(db: Database[dict[str, Any]]) -> None:
     _ensure_indexes(db)
     user_repo = MongoUserDataRepository(db)
     workspace_repo = MongoWorkspaceDataRepository(db)
@@ -38,7 +40,7 @@ def init_db(db: Database) -> None:
         workspace_repo.get_or_create_default_workspace(owner_id=user.id)
 
 
-def _ensure_indexes(db: Database) -> None:
+def _ensure_indexes(db: Database[dict[str, Any]]) -> None:
     db["users"].create_index("email", unique=True)
     db["items"].create_index([("owner_id", 1), ("workspace_id", 1)])
     db["workspaces"].create_index([("owner_id", 1), ("name", 1)])

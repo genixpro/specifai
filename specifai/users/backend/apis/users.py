@@ -40,7 +40,8 @@ def read_users(repo: UserRepoDep, skip: int = 0, limit: int = 100) -> Any:
     Retrieve users.
     """
     users, count = repo.list_users(skip=skip, limit=limit)
-    return UsersPublic(data=users, count=count)
+    public_users = [UserPublic.model_validate(user) for user in users]
+    return UsersPublic(data=public_users, count=count)
 
 
 @router.post(
@@ -145,7 +146,7 @@ def register_user(
             status_code=400,
             detail="The user with this email already exists in the system",
         )
-    user_create = UserCreate.model_validate(user_in)
+    user_create = UserCreate(**user_in.model_dump())
     user = user_repo.create_user(user_create=user_create)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     return user
@@ -159,7 +160,7 @@ def read_user_by_id(
     Get a specific user by id.
     """
     user = repo.get_user_by_id(user_id)
-    if user == current_user:
+    if user and user.id == current_user.id:
         return user
     if not current_user.is_superuser:
         raise HTTPException(

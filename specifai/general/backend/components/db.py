@@ -1,36 +1,33 @@
-from sqlmodel import Session, create_engine
+from typing import Any
+
+from pymongo import MongoClient
+from pymongo.database import Database
 
 from specifai.general.backend.components.config import settings
-from specifai.items.backend.data_models import item_models  # noqa: F401
-from specifai.users.backend.data_models import user_models  # noqa: F401
 from specifai.users.backend.data_models.user_models import UserCreate
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
-from specifai.workspaces.backend.data_models import workspace_models  # noqa: F401
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
+from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo import (
+    MongoWorkspaceDataRepository,
 )
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+mongo_client: MongoClient[dict[str, Any]] = MongoClient(settings.mongo_uri)
+mongo_db: Database[dict[str, Any]] = mongo_client[settings.MONGODB_DB]
 
 
-# make sure all SQLModel models are imported (app.models) before initializing DB
-# otherwise, SQLModel might fail to initialize relationships properly
-# for more details: https://github.com/fastapi/full-stack-fastapi-template/issues/28
+def get_database() -> Database[dict[str, Any]]:
+    return mongo_db
 
 
-def init_db(session: Session) -> None:
-    # Tables should be created with Alembic migrations
-    # But if you don't want to use migrations, create
-    # the tables un-commenting the next lines
-    # from sqlmodel import SQLModel
+def close_database() -> None:
+    mongo_client.close()
 
-    # This works because the models are already imported and registered from app.models
-    # SQLModel.metadata.create_all(engine)
 
-    user_repo = PostgresUserDataRepository(session)
-    workspace_repo = PostgresWorkspaceDataRepository(session)
+def init_db(db: Database[dict[str, Any]]) -> None:
+    _ensure_indexes(db)
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = user_repo.get_user_by_email(settings.FIRST_SUPERUSER)
     if not user:
         user_in = UserCreate(
@@ -41,3 +38,9 @@ def init_db(session: Session) -> None:
         user = user_repo.create_user(user_create=user_in)
     if user:
         workspace_repo.get_or_create_default_workspace(owner_id=user.id)
+
+
+def _ensure_indexes(db: Database[dict[str, Any]]) -> None:
+    db["users"].create_index("email", unique=True)
+    db["items"].create_index([("owner_id", 1), ("workspace_id", 1)])
+    db["workspaces"].create_index([("owner_id", 1), ("name", 1)])

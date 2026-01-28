@@ -1,5 +1,7 @@
+from typing import Any
+
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.general.backend.components.config import settings
 from specifai.general.backend.utils.test_utils import random_email, random_lower_string
@@ -8,11 +10,11 @@ from specifai.users.backend.data_models.user_models import (
     UserCreate,
     UserUpdate,
 )
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
+from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo import (
+    MongoWorkspaceDataRepository,
 )
 
 
@@ -28,19 +30,19 @@ def user_authentication_headers(
     return headers
 
 
-def create_random_user(db: Session) -> User:
+def create_random_user(db: Database[dict[str, Any]]) -> User:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = user_repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     return user
 
 
 def authentication_token_from_email(
-    *, client: TestClient, email: str, db: Session
+    *, client: TestClient, email: str, db: Database[dict[str, Any]]
 ) -> dict[str, str]:
     """
     Return a valid token for the user with given email.
@@ -48,8 +50,8 @@ def authentication_token_from_email(
     If the user doesn't exist it is created first.
     """
     password = random_lower_string()
-    user_repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    user_repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = user_repo.get_user_by_email(email)
     if not user:
         user_in_create = UserCreate(email=email, password=password)

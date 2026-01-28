@@ -9,7 +9,6 @@ from pydantic import (
     BeforeValidator,
     EmailStr,
     HttpUrl,
-    PostgresDsn,
     computed_field,
     model_validator,
 )
@@ -52,23 +51,26 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
-    POSTGRES_SERVER: str
-    POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str = ""
-    POSTGRES_DB: str = ""
+    MONGODB_SERVER: str
+    MONGODB_PORT: int = 27017
+    MONGODB_USER: str | None = None
+    MONGODB_PASSWORD: str | None = None
+    MONGODB_DB: str = "app"
+    MONGODB_URI: str | None = None
+    MONGODB_AUTH_SOURCE: str = "admin"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
-        return PostgresDsn.build(
-            scheme="postgresql+psycopg",
-            username=self.POSTGRES_USER,
-            password=self.POSTGRES_PASSWORD,
-            host=self.POSTGRES_SERVER,
-            port=self.POSTGRES_PORT,
-            path=self.POSTGRES_DB,
-        )
+    def mongo_uri(self) -> str:
+        if self.MONGODB_URI:
+            return self.MONGODB_URI
+        auth = ""
+        if self.MONGODB_USER and self.MONGODB_PASSWORD:
+            auth = f"{self.MONGODB_USER}:{self.MONGODB_PASSWORD}@"
+        uri = f"mongodb://{auth}{self.MONGODB_SERVER}:{self.MONGODB_PORT}/{self.MONGODB_DB}"
+        if auth:
+            uri = f"{uri}?authSource={self.MONGODB_AUTH_SOURCE}"
+        return uri
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
@@ -120,7 +122,8 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
-        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
+        if self.MONGODB_PASSWORD is not None:
+            self._check_default_secret("MONGODB_PASSWORD", self.MONGODB_PASSWORD)
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )

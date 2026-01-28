@@ -1,15 +1,16 @@
 import uuid
+from typing import Any
 
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.general.backend.components.config import settings
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
 
 
-def test_create_user(client: TestClient, db: Session) -> None:
+def test_create_user(client: TestClient, db: Database[dict[str, Any]]) -> None:
     r = client.post(
         f"{settings.API_V1_STR}/private/users/",
         json={
@@ -24,7 +25,7 @@ def test_create_user(client: TestClient, db: Session) -> None:
     data = r.json()
 
     user_id = uuid.UUID(data["id"])
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     user = repo.get_user_by_id(user_id)
 
     assert user

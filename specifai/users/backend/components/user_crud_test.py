@@ -1,5 +1,7 @@
+from typing import Any
+
 from fastapi.encoders import jsonable_encoder
-from sqlmodel import Session
+from pymongo.database import Database
 
 from specifai.auth.backend.components.auth_service import authenticate
 from specifai.general.backend.components.security import verify_password
@@ -8,32 +10,32 @@ from specifai.general.backend.utils.test_utils import (
     random_lower_string,
 )
 from specifai.users.backend.data_models.user_models import UserCreate, UserUpdate
-from specifai.users.backend.data_repository.user_data_repository_postgres import (
-    PostgresUserDataRepository,
+from specifai.users.backend.data_repository.user_data_repository_mongo import (
+    MongoUserDataRepository,
 )
-from specifai.workspaces.backend.data_repository.workspace_data_repository_postgres import (
-    PostgresWorkspaceDataRepository,
+from specifai.workspaces.backend.data_repository.workspace_data_repository_mongo import (
+    MongoWorkspaceDataRepository,
 )
 
 
-def test_create_user(db: Session) -> None:
+def test_create_user(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
-    repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     assert user.email == email
     assert hasattr(user, "hashed_password")
 
 
-def test_authenticate_user(db: Session) -> None:
+def test_authenticate_user(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
-    repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     authenticated_user = authenticate(repo=repo, email=email, password=password)
@@ -41,79 +43,79 @@ def test_authenticate_user(db: Session) -> None:
     assert user.email == authenticated_user.email
 
 
-def test_not_authenticate_user(db: Session) -> None:
+def test_not_authenticate_user(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     user = authenticate(repo=repo, email=email, password=password)
     assert user is None
 
 
-def test_check_if_user_is_active(db: Session) -> None:
+def test_check_if_user_is_active(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
-    repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     assert user.is_active is True
 
 
-def test_check_if_user_is_active_inactive(db: Session) -> None:
+def test_check_if_user_is_active_inactive(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password, disabled=True)
-    repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     assert user.is_active
 
 
-def test_check_if_user_is_superuser(db: Session) -> None:
+def test_check_if_user_is_superuser(db: Database[dict[str, Any]]) -> None:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password, is_superuser=True)
-    repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     assert user.is_superuser is True
 
 
-def test_check_if_user_is_superuser_normal_user(db: Session) -> None:
+def test_check_if_user_is_superuser_normal_user(db: Database[dict[str, Any]]) -> None:
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     assert user.is_superuser is False
 
 
-def test_get_user(db: Session) -> None:
+def test_get_user(db: Database[dict[str, Any]]) -> None:
     password = random_lower_string()
     username = random_email()
     user_in = UserCreate(email=username, password=password, is_superuser=True)
-    repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
-    repo = PostgresUserDataRepository(db)
+    repo = MongoUserDataRepository(db)
     user_2 = repo.get_user_by_id(user.id)
     assert user_2
     assert user.email == user_2.email
     assert jsonable_encoder(user) == jsonable_encoder(user_2)
 
 
-def test_update_user(db: Session) -> None:
+def test_update_user(db: Database[dict[str, Any]]) -> None:
     password = random_lower_string()
     email = random_email()
     user_in = UserCreate(email=email, password=password, is_superuser=True)
-    repo = PostgresUserDataRepository(db)
-    workspace_repo = PostgresWorkspaceDataRepository(db)
+    repo = MongoUserDataRepository(db)
+    workspace_repo = MongoWorkspaceDataRepository(db)
     user = repo.create_user(user_create=user_in)
     workspace_repo.get_or_create_default_workspace(owner_id=user.id)
     new_password = random_lower_string()

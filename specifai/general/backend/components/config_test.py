@@ -67,7 +67,10 @@ def test_settings_mongodb_uri() -> None:
         MONGODB_USER="mongo",
         MONGODB_PASSWORD="password",
     )
-    assert settings.mongo_uri == "mongodb://mongo:password@db.internal:27019/specifai"
+    assert (
+        settings.mongo_uri
+        == "mongodb://mongo:password@db.internal:27019/specifai?authSource=admin"
+    )
 
 
 def test_settings_default_secret_warns_in_local() -> None:

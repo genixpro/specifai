@@ -30,16 +30,8 @@ jobs:
       - run: docker compose up -d mongo mailcatcher
       - name: Migrate DB
         run: uv run bash scripts/backend-prestart.sh
-        env:
-          ALEMBIC_CONFIG: alembic.ini
-          POSTGRES_SERVER: localhost
-          POSTGRES_PORT: "5432"
       - name: Run tests
         run: uv run bash scripts/backend-tests-start.sh "Coverage for ${{ github.sha }}"
-        env:
-          ALEMBIC_CONFIG: alembic.ini
-          POSTGRES_SERVER: localhost
-          POSTGRES_PORT: "5432"
       - run: docker compose down -v --remove-orphans
       - name: Store coverage files
         uses: actions/upload-artifact@v6

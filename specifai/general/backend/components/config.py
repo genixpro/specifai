@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     MONGODB_PASSWORD: str | None = None
     MONGODB_DB: str = "app"
     MONGODB_URI: str | None = None
+    MONGODB_AUTH_SOURCE: str = "admin"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -66,7 +67,10 @@ class Settings(BaseSettings):
         auth = ""
         if self.MONGODB_USER and self.MONGODB_PASSWORD:
             auth = f"{self.MONGODB_USER}:{self.MONGODB_PASSWORD}@"
-        return f"mongodb://{auth}{self.MONGODB_SERVER}:{self.MONGODB_PORT}/{self.MONGODB_DB}"
+        uri = f"mongodb://{auth}{self.MONGODB_SERVER}:{self.MONGODB_PORT}/{self.MONGODB_DB}"
+        if auth:
+            uri = f"{uri}?authSource={self.MONGODB_AUTH_SOURCE}"
+        return uri
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False

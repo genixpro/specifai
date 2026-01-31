@@ -1,6 +1,6 @@
 services:
   pw-mongo:
-    image: mongo:7
+    image: mongo:8
     restart: "no"
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
